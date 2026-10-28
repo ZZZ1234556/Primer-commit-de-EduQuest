@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Press+Start+2P&family=Fredoka:wght@500;700&family=Nunito:wght@600;800&family=Rajdhani:wght@600;700&family=JetBrains+Mono:wght@500;700&display=swap">
   <link rel="stylesheet" href="/theme.css">
   <link rel="stylesheet" href="/neon.css">
+  <link rel="stylesheet" href="/duelo.css">
   <script>(function(){var D={modo:"claro",acento:"rosa",fondo:"liso",fuente:"moderna",neon:"off",esq:"normal",sombra:"dura"};function leer(){try{return Object.assign({},D,JSON.parse(localStorage.getItem("eduquest_tema")||"{}"))}catch(e){return Object.assign({},D)}}function aplicar(t){var r=document.documentElement,m=t.modo;if(m==="auto")m=matchMedia("(prefers-color-scheme: dark)").matches?"oscuro":"claro";r.dataset.modo=m;["acento","fondo","fuente","neon","esq","sombra"].forEach(function(k){r.dataset[k]=t[k]});var img=null;try{img=localStorage.getItem("eduquest_fondo")}catch(e){}if(t.fondo==="imagen"&&img)r.style.setProperty("--bgimg",'url("'+img+'")');else r.style.removeProperty("--bgimg")}window.eduTema={D:D,leer:leer,aplicar:aplicar};aplicar(leer())})();</script>
   <script>window.eduAuthReady = new Promise(function (r) { window.__eduAuthResolve = r; });</script>
   <script src="/rewards-client.js"></script>
@@ -401,6 +402,12 @@
                 <progress :value="resumenTrofeos('baloncesto').hechos" :max="resumenTrofeos('baloncesto').total"></progress>
               </button>
             </div>
+            <div class="bg-white rounded-3xl p-6 card-shadow border border-gray-100 cursor-pointer hover:border-brandOrange transition" @click="abrirDuelo()">
+              <div class="duelo-art" aria-hidden="true"><ic n="pad"></ic><ic n="quiz"></ic></div>
+              <h3 class="text-xl font-black text-gray-800 mb-2">Duelo multijugador</h3>
+              <p class="text-sm text-gray-500 mb-4">Quiz en vivo contra tus compañeros con un código de sala.</p>
+              <div class="flex items-center gap-2 text-xs font-bold text-brandOrange"><ic n="play"></ic> Crear o unirme a una sala</div>
+            </div>
           </div>
         </div>
 
@@ -678,6 +685,51 @@
           <div v-if="vista === 'logros' && progress" class="achievement-grid"><article v-for="a in achievements" :key="a.id" class="achievement" :class="{ unlocked: achievementValue(a) >= a.target }"><ic :n="a.icon"></ic><span class="reward-eyebrow"><img src="/coin.svg" class="coin coin-xs" alt="">+{{ a.gold }} ORO</span><h2>{{ a.name }}</h2><p>{{ a.desc }}</p><progress :value="Math.min(achievementValue(a), a.target)" :max="a.target" :aria-label="a.name"></progress><small>{{ Math.min(achievementValue(a), a.target) }} / {{ a.target }}</small><button :disabled="!rewardReady || achievementValue(a) < a.target || progress.achievements.includes(a.id)" @click="rewardAction('achievement', a.id)">{{ progress.achievements.includes(a.id) ? 'Reclamado' : achievementValue(a) >= a.target ? 'Reclamar oro' : 'En progreso' }}</button></article></div>
         </section>
 
+        <!-- DUELO MULTIJUGADOR -->
+        <section v-if="vista === 'duelo'" class="duelo-page">
+          <div v-if="duelo.fase === 'menu'" class="duelo-menu">
+            <div class="duelo-card">
+              <h3>Crear sala</h3><p>Tú eres el anfitrión: te sale un código para pasárselo a tus compañeros.</p>
+              <button type="button" class="duelo-btn" :disabled="duelo.cargando" @click="crearDuelo">{{ duelo.cargando ? 'ESPERA…' : 'CREAR SALA' }}</button>
+            </div>
+            <div class="duelo-card">
+              <h3>Unirme a una sala</h3><p>Escribe el código de 4 letras que te dio el anfitrión.</p>
+              <div class="duelo-join">
+                <input v-model="duelo.codigoEntrada" maxlength="4" placeholder="K7QF" autocomplete="off" autocapitalize="characters" aria-label="Código de la sala" @input="duelo.codigoEntrada = duelo.codigoEntrada.toUpperCase().replace(/[^A-Z0-9]/g, '')" @keydown.enter="unirseDuelo">
+                <button type="button" class="duelo-btn" :disabled="duelo.cargando" @click="unirseDuelo">ENTRAR</button>
+              </div>
+            </div>
+          </div>
+          <div v-else-if="duelo.fase === 'sala'" class="duelo-card duelo-sala">
+            <small>CÓDIGO DE LA SALA</small>
+            <div class="duelo-codigo"><b>{{ duelo.code }}</b><button type="button" class="duelo-mini" @click="copiarCodigoDuelo">{{ duelo.copiado ? 'Copiado ✓' : 'Copiar' }}</button></div>
+            <h3>Jugadores ({{ duelo.jugadores.length }})</h3>
+            <ul class="duelo-lista"><li v-for="j in duelo.jugadores" :key="j.uid"><img v-if="j.avatar" :src="j.avatar" alt=""><span v-else class="duelo-ini">{{ (j.nombre || '?').charAt(0) }}</span>{{ j.nombre }}<em v-if="duelo.sala && j.uid === duelo.sala.host">ANFITRIÓN</em></li></ul>
+            <button v-if="dueloEsHost" type="button" class="duelo-btn" :disabled="duelo.jugadores.length < dueloMin" @click="empezarDuelo">{{ duelo.jugadores.length < dueloMin ? 'ESPERANDO JUGADORES…' : 'EMPEZAR DUELO' }}</button>
+            <p v-else class="duelo-espera">Esperando a que el anfitrión empiece…</p>
+            <button type="button" class="duelo-link" @click="dueloSalir()">Salir de la sala</button>
+          </div>
+          <div v-else-if="duelo.fase === 'jugando' && dueloPregunta" class="duelo-juego">
+            <div class="duelo-top"><span>Pregunta {{ duelo.idx + 1 }} / {{ duelo.sala.preguntas.length }}</span><span>{{ Math.ceil(duelo.restante) }} s</span></div>
+            <div class="duelo-barra"><span :style="{ width: (duelo.restante / dueloSeg * 100) + '%' }"></span></div>
+            <h2>{{ dueloPregunta.pregunta }}</h2>
+            <div class="duelo-opciones">
+              <button v-for="(op, i) in dueloPregunta.opciones" :key="i" type="button" :disabled="duelo.respondida !== null" :class="{ ok: duelo.respondida !== null && i === dueloPregunta.correcta, mal: duelo.respondida === i && i !== dueloPregunta.correcta }" @click="dueloResponder(i)"><b>{{ 'ABCD'.charAt(i) }}</b> {{ op }}</button>
+            </div>
+            <p v-if="duelo.respondida !== null" class="duelo-feedback">{{ duelo.ultimo.ok ? '¡Bien! +' + duelo.ultimo.pts + ' puntos.' : (duelo.respondida === -1 ? 'Se acabó el tiempo.' : 'Incorrecto.') }} Esperando a los demás…</p>
+            <ol class="duelo-rank"><li v-for="(j, n) in dueloRanking" :key="j.uid" :class="{ yo: esYoDuelo(j) }"><span>{{ n + 1 }}. {{ j.nombre }}</span><b>{{ j.puntos }}</b></li></ol>
+          </div>
+          <div v-else-if="duelo.fase === 'fin'" class="duelo-card duelo-fin">
+            <h2>{{ duelo.gane ? '¡Ganaste el duelo!' : 'Duelo terminado' }}</h2>
+            <ol class="duelo-rank grande"><li v-for="(j, n) in dueloRanking" :key="j.uid" :class="{ yo: esYoDuelo(j) }"><span>{{ n + 1 }}. {{ j.nombre }}</span><b>{{ j.puntos }}</b></li></ol>
+            <p class="duelo-xp">Ganaste <b>{{ duelo.xpGanada }} XP</b> · {{ duelo.aciertos }} de {{ duelo.sala.preguntas.length }} aciertos</p>
+            <button type="button" class="duelo-btn" @click="dueloSalir(null)">JUGAR OTRA VEZ</button>
+            <button type="button" class="duelo-link" @click="dueloSalir()">Volver a Mis Quizzes</button>
+          </div>
+          <p v-else class="duelo-espera">Cargando…</p>
+          <p v-if="duelo.error" class="duelo-error" role="alert">{{ duelo.error }}</p>
+        </section>
+
         <!-- AJUSTES -->
         <div v-if="vista === 'ajustes'" class="flex-1 px-8 pb-8">
           <div class="bg-white rounded-3xl p-8 card-shadow max-w-2xl border border-gray-100 mb-6" id="personalizar">
@@ -906,6 +958,118 @@
         // el XP viene del servidor: la primera vez que carga se revisa en silencio (para no llenar la pantalla de avisos con trofeos viejos)
         watch(() => progress.value?.xp, xp => { if (xp == null) return; const silencio = !trofeoSync; trofeoSync = true; revisarTrofeos(silencio); });
 
+        // ===== DUELO MULTIJUGADOR (Firestore) =====
+        const DUELO_SEG = 15, DUELO_MIN = 2, DUELO_PREGUNTAS = 8;
+        const estadoInicialDuelo = () => ({ fase: 'menu', code: '', codigoEntrada: '', error: '', cargando: false, copiado: false, sala: null, jugadores: [], idx: -1, respondida: null, restante: DUELO_SEG, puntos: 0, aciertos: 0, ultimo: { ok: false, pts: 0 }, premiado: false, gane: false, xpGanada: 0, avanzando: -1, t0: 0 });
+        const duelo = ref(estadoInicialDuelo());
+        let dueloOff = null, dueloTimer = null;
+        const dueloPregunta = computed(() => { const s = duelo.value.sala; return s && s.preguntas ? (PREGUNTAS_DATA[s.preguntas[duelo.value.idx]] || null) : null; });
+        const dueloRanking = computed(() => [...duelo.value.jugadores].sort((a, b) => (b.puntos - a.puntos) || String(a.nombre).localeCompare(String(b.nombre))));
+        const dueloEsHost = computed(() => !!duelo.value.sala && duelo.value.sala.host === currentUid);
+        const esYoDuelo = j => j.uid === currentUid;
+        const dueloMsg = e => /permission|insufficient/i.test((e && e.message) || '') ? 'El multijugador todavía no está activado: falta activar Firestore y publicar sus reglas.' : ((e && e.message) || 'Algo falló. Intenta otra vez.');
+        function dueloPerfil() {
+          const av = String(usuario.value.avatar || '');
+          return { nombre: String(usuario.value.nombre || 'Jugador').slice(0, 24), avatar: av.startsWith('/avatars/') ? av : '' };
+        }
+        function dueloApi() { if (!window.EduDuelo) throw new Error('Todavía se está conectando. Intenta en unos segundos.'); return window.EduDuelo; }
+        function dueloLimpiarSesion() { clearInterval(dueloTimer); dueloTimer = null; if (dueloOff) { dueloOff(); dueloOff = null; } }
+        function abrirDuelo() { ir('duelo'); Object.assign(duelo.value, estadoInicialDuelo()); }
+        function dueloEntrar(code) {
+          const d = duelo.value; d.code = code; d.fase = 'sala'; d.error = '';
+          dueloOff = dueloApi().escuchar(code, dueloAlSala, js => { d.jugadores = js; dueloRevisarAvance(); });
+        }
+        async function crearDuelo() {
+          const d = duelo.value; if (d.cargando) return; d.cargando = true; d.error = '';
+          try {
+            const p = dueloPerfil();
+            const idxs = mezclar(PREGUNTAS_DATA.map((_, i) => i)).slice(0, Math.min(DUELO_PREGUNTAS, PREGUNTAS_DATA.length));
+            const code = await dueloApi().crear(currentUid, p.nombre, p.avatar, idxs);
+            dueloEntrar(code);
+          } catch (e) { d.error = dueloMsg(e); }
+          d.cargando = false;
+        }
+        async function unirseDuelo() {
+          const d = duelo.value, cod = String(d.codigoEntrada || '').trim().toUpperCase();
+          if (d.cargando) return;
+          if (cod.length !== 4) { d.error = 'El código tiene 4 letras o números.'; return; }
+          d.cargando = true; d.error = '';
+          try { const p = dueloPerfil(); await dueloApi().unirse(cod, currentUid, p.nombre, p.avatar); dueloEntrar(cod); }
+          catch (e) { d.error = dueloMsg(e); }
+          d.cargando = false;
+        }
+        function dueloAlSala(s) {
+          const d = duelo.value;
+          if (!s || s.estado === 'cerrada') {
+            if (d.fase === 'fin') return;
+            dueloLimpiarSesion(); Object.assign(d, estadoInicialDuelo(), { error: 'La sala se cerró.' }); return;
+          }
+          d.sala = s;
+          if (s.estado === 'jugando' && (d.fase !== 'jugando' || d.idx !== s.idx)) dueloArrancarPregunta(s.idx);
+          else if (s.estado === 'fin' && d.fase !== 'fin') dueloTerminar();
+          dueloRevisarAvance();
+        }
+        async function empezarDuelo() {
+          const d = duelo.value; if (!dueloEsHost.value || d.jugadores.length < DUELO_MIN) return;
+          try { await dueloApi().actualizarSala(d.code, { estado: 'jugando', idx: 0 }); } catch (e) { d.error = dueloMsg(e); }
+        }
+        function dueloArrancarPregunta(idx) {
+          clearInterval(dueloTimer);
+          const d = duelo.value;
+          Object.assign(d, { idx, respondida: null, restante: DUELO_SEG, fase: 'jugando', t0: Date.now(), ultimo: { ok: false, pts: 0 } });
+          dueloTimer = setInterval(() => {
+            const el = (Date.now() - d.t0) / 1000;
+            d.restante = Math.max(0, DUELO_SEG - el);
+            if (el >= DUELO_SEG && d.respondida === null) dueloResponder(-1);
+            if (el >= DUELO_SEG + 4 && dueloEsHost.value) dueloAvanzar(idx);
+          }, 250);
+        }
+        async function dueloResponder(op) {
+          const d = duelo.value, q = dueloPregunta.value;
+          if (d.respondida !== null || !q || d.fase !== 'jugando') return;
+          const ok = op === q.correcta, pts = ok ? 100 + Math.round(100 * d.restante / DUELO_SEG) : 0;
+          d.respondida = op; d.ultimo = { ok, pts }; d.puntos += pts; if (ok) d.aciertos++;
+          try { await dueloApi().actualizarJugador(d.code, currentUid, { puntos: d.puntos, aciertos: d.aciertos, ultimaResp: d.idx }); }
+          catch (e) { d.error = 'Se perdió la conexión con la sala.'; }
+        }
+        function dueloRevisarAvance() {
+          const d = duelo.value, s = d.sala;
+          if (!s || s.estado !== 'jugando' || !dueloEsHost.value || !d.jugadores.length) return;
+          if (!d.jugadores.every(j => j.ultimaResp >= s.idx)) return;
+          setTimeout(() => dueloAvanzar(s.idx), 1800); // deja ver si acertaste antes de pasar
+        }
+        async function dueloAvanzar(idx) {
+          const d = duelo.value, s = d.sala;
+          if (!s || s.estado !== 'jugando' || s.idx !== idx || d.avanzando === idx) return;
+          d.avanzando = idx;
+          const sig = idx + 1;
+          try { await dueloApi().actualizarSala(d.code, sig < s.preguntas.length ? { idx: sig } : { estado: 'fin' }); } catch (e) { d.error = dueloMsg(e); }
+        }
+        function dueloTerminar() {
+          const d = duelo.value; clearInterval(dueloTimer); dueloTimer = null; d.fase = 'fin';
+          setTimeout(() => { // espera un poquito a que lleguen los puntos finales de los demás
+            if (d.premiado || d.fase !== 'fin') return; d.premiado = true;
+            const orden = dueloRanking.value, total = d.sala.preguntas.length;
+            d.gane = orden.length > 1 && orden[0].uid === currentUid && orden[0].puntos > orden[1].puntos;
+            d.xpGanada = Math.min(500, d.aciertos * 10 + (d.gane ? 30 : 0));
+            const perfecto = d.aciertos === total;
+            sumarXP(d.xpGanada, 'quizzes', perfecto);
+            if (perfecto) usuario.value.stats.perfectos++;
+            guardarUsuario(); revisarTrofeos();
+          }, 900);
+        }
+        async function dueloSalir(irA = 'quizzes') {
+          const d = duelo.value, code = d.code, eraHost = dueloEsHost.value;
+          dueloLimpiarSesion();
+          Object.assign(d, estadoInicialDuelo());
+          if (code && window.EduDuelo) { try { if (eraHost) await window.EduDuelo.cerrarSala(code); else await window.EduDuelo.salirJugador(code, currentUid); } catch {} }
+          if (irA) ir(irA);
+        }
+        function limpiarDuelo() { if (duelo.value.code) dueloSalir(null); }
+        async function copiarCodigoDuelo() {
+          try { await navigator.clipboard.writeText(duelo.value.code); duelo.value.copiado = true; setTimeout(() => { duelo.value.copiado = false; }, 1800); } catch {}
+        }
+
         const chestModal = ref(null);
         let previousChestFocus;
         watch(chestDialog, async visible => {
@@ -919,13 +1083,13 @@
         }
         onMounted(() => document.addEventListener('keydown', trapChestFocus));
         onBeforeUnmount(() => document.removeEventListener('keydown', trapChestFocus));
-        const titulos = { dashboard: 'Centro de mando', quizzes: 'Mis Quizzes', bugs: 'Escáner de Bugs', tiro: 'Tiro al Blanco', carrera: 'Carrera de Código', teclas: 'Carrera de Teclas', resultados: 'Resultados', logros: 'Logros', tienda: 'Armería y suministros', recompensas: 'Pase de código', ajustes: 'Ajustes' };
+        const titulos = { dashboard: 'Centro de mando', quizzes: 'Mis Quizzes', bugs: 'Escáner de Bugs', tiro: 'Tiro al Blanco', carrera: 'Carrera de Código', teclas: 'Carrera de Teclas', resultados: 'Resultados', duelo: 'Duelo de Quiz', logros: 'Logros', tienda: 'Armería y suministros', recompensas: 'Pase de código', ajustes: 'Ajustes' };
         const menuAbierto = ref(false);
         const menu = [
           { v: 'dashboard', i: 'chart', t: 'Inicio' }, { v: 'quizzes', i: 'book', t: 'Mis Quizzes' },
           { v: 'logros', i: 'trophy', t: 'Logros' }, { v: 'tienda', i: 'gem', t: 'Tienda' }, { v: 'recompensas', i: 'star', t: 'Pase de código' }, { v: 'ajustes', i: 'gear', t: 'Ajustes' }
         ];
-        const activo = (v) => vista.value === v || (v === 'quizzes' && ['bugs', 'tiro', 'carrera', 'teclas', 'baloncesto', 'resultados'].includes(vista.value));
+        const activo = (v) => vista.value === v || (v === 'quizzes' && ['bugs', 'tiro', 'carrera', 'teclas', 'baloncesto', 'resultados', 'duelo'].includes(vista.value));
         function ir(v) { limpiarMini(); jugando.value = false; vista.value = v; menuAbierto.value = false; }
 
         function hoyStr(d = new Date()) { return d.toLocaleDateString('en-CA'); }
@@ -1334,7 +1498,7 @@
           carPausa = setTimeout(() => { if (!c.fin) preguntaCarrera(); }, 700);
         }
 
-        function limpiarMini() { clearInterval(tiroTimer); clearTimeout(tiroPausa); clearInterval(carTimer); clearTimeout(carPausa); bbTimers.forEach(clearTimeout); bbTimers = []; }
+        function limpiarMini() { clearInterval(tiroTimer); clearTimeout(tiroPausa); clearInterval(carTimer); clearTimeout(carPausa); bbTimers.forEach(clearTimeout); bbTimers = []; limpiarDuelo(); }
         function salirMini() { limpiarMini(); vista.value = 'quizzes'; }
 
         // PERSONALIZAR (tema)
@@ -1387,7 +1551,7 @@
           mostrandoBienvenida, terminarBienvenida, enfocarAcceso,
           usuarioLogueado, inputNombre, tempAvatar, cargarImagen, guardarLogin, cerrarSesion,
           TEMA_GRUPOS, tema, temaMsg, modoActual, alternarModo, temaReset, temaAleatorio, subirFondo,
-          emailHint, trofeoActual, cerrarTrofeo, trofeoGrupos, trofeosTotal, trofeosHechos, trofeoPlatino, tieneTrofeo, trofeoValor, trofeoMeta, trofeoImgError, tierNombre, resumenTrofeos, abrirTrofeos, cerrarTrofeosJuego, trofeoGrupoAbierto, trofeoPanel, authMode, authEmail, authPass, authError, authInfo, authBusy, cambiarModo, enviarAuth, olvidoPass,
+          emailHint, trofeoActual, cerrarTrofeo, trofeoGrupos, trofeosTotal, trofeosHechos, trofeoPlatino, tieneTrofeo, trofeoValor, trofeoMeta, trofeoImgError, tierNombre, resumenTrofeos, abrirTrofeos, cerrarTrofeosJuego, trofeoGrupoAbierto, trofeoPanel, duelo, dueloMin: DUELO_MIN, dueloSeg: DUELO_SEG, dueloEsHost, dueloPregunta, dueloRanking, esYoDuelo, abrirDuelo, crearDuelo, unirseDuelo, empezarDuelo, dueloResponder, dueloSalir, copiarCodigoDuelo, authMode, authEmail, authPass, authError, authInfo, authBusy, cambiarModo, enviarAuth, olvidoPass,
           vista, jugando, usuario, nivelActual, rango,
           preguntasActuales, indiceActual, puntosActuales, respuestaSeleccionada, aciertos,
           preguntaActual, esCorrecta, iniciarJuego, seleccionarRespuesta, siguientePregunta,

@@ -1,6 +1,7 @@
 // Conecta Firebase Auth con index.html (que usa Vue por CDN).
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, updateProfile } from 'firebase/auth';
 import { auth } from './firebase.js';
+import './duelo-bridge.js';
 
 const api = {
   onChange: (cb) => onAuthStateChanged(auth, cb),

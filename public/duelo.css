@@ -1,0 +1,45 @@
+/* Duelo de Quiz (multijugador). Usa los colores del tema elegido. */
+.duelo-page{padding:8px 32px 48px;max-width:860px;width:100%;margin:0 auto;color:var(--fg,#edf1e8)}
+.duelo-menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.duelo-card{background:var(--p,#161e1a);border:var(--bw,2px) solid var(--ln,#38453b);border-radius:var(--rad,8px);padding:22px;box-shadow:var(--sh,none)}
+.duelo-card h3{font-size:20px;font-weight:900;margin:0 0 6px}
+.duelo-card p{color:var(--mut,#a5b2a5);font-size:14px;margin:0 0 16px;line-height:1.5}
+html .gamer-app .duelo-btn{display:block;width:100%;padding:13px 16px;border:2px solid var(--ln,#c2ea68);border-radius:calc(var(--rad,8px)*.6);background:var(--acc,#c2ea68);color:var(--ink,#111);font:inherit;font-weight:900;letter-spacing:.04em;cursor:pointer;box-shadow:2px 2px 0 var(--shc,transparent)}
+html .gamer-app .duelo-btn:disabled{opacity:.55;cursor:not-allowed}
+html .gamer-app .duelo-btn:not(:disabled):hover{filter:brightness(1.08)}
+html .gamer-app .duelo-mini{padding:7px 12px;border:2px solid var(--ln,#c2ea68);border-radius:6px;background:transparent;color:inherit;font:inherit;font-weight:800;font-size:12px;cursor:pointer}
+html .gamer-app .duelo-link{display:block;margin:14px auto 0;background:none;border:0;color:var(--acct,var(--acc,#c2ea68));text-decoration:underline;font:inherit;font-size:13px;cursor:pointer}
+.duelo-join{display:flex;gap:8px}
+.duelo-join input{flex:1;min-width:0;padding:12px;border:2px solid var(--ln,#38453b);border-radius:6px;background:transparent;color:inherit;font:inherit;font-size:22px;font-weight:900;letter-spacing:.35em;text-align:center;text-transform:uppercase}
+.duelo-join .duelo-btn{width:auto}
+.duelo-error{grid-column:1/-1;margin:12px 0 0;color:#ff8fb8;font-weight:700;font-size:14px}
+.duelo-sala small{font-size:11px;letter-spacing:.16em;font-weight:900;color:var(--mut,#a5b2a5)}
+.duelo-codigo{display:flex;align-items:center;gap:14px;margin:6px 0 18px}
+.duelo-codigo b{font-size:clamp(40px,9vw,64px);letter-spacing:.2em;font-weight:900;line-height:1}
+.duelo-lista{list-style:none;margin:10px 0 18px;padding:0;display:grid;gap:8px}
+.duelo-lista li{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--ln,#38453b);border-radius:6px;font-weight:700}
+.duelo-lista li img,.duelo-ini{width:34px;height:34px;border-radius:50%;object-fit:cover;flex:none}
+.duelo-ini{display:grid;place-items:center;background:var(--acc,#c2ea68);color:var(--ink,#111);font-weight:900;text-transform:uppercase}
+.duelo-lista em{margin-left:auto;font-style:normal;font-size:11px;font-weight:900;color:var(--acct,var(--acc,#c2ea68))}
+.duelo-espera{text-align:center;color:var(--mut,#a5b2a5);margin:8px 0 0}
+.duelo-top{display:flex;justify-content:space-between;font-weight:900;margin-bottom:8px}
+.duelo-barra{height:10px;border-radius:6px;background:color-mix(in srgb,var(--ln,#38453b) 40%,transparent);overflow:hidden;margin-bottom:20px}
+.duelo-barra span{display:block;height:100%;background:var(--acc,#c2ea68);transition:width .25s linear}
+.duelo-juego h2{font-size:clamp(20px,3.4vw,28px);font-weight:900;margin:0 0 18px;line-height:1.3}
+.duelo-opciones{display:grid;gap:10px}
+html .gamer-app .duelo-opciones button{display:flex;gap:12px;align-items:center;text-align:left;padding:14px 16px;border:2px solid var(--ln,#38453b);border-radius:8px;background:var(--p,#161e1a);color:inherit;font:inherit;font-weight:700;cursor:pointer}
+html .gamer-app .duelo-opciones button b{display:grid;place-items:center;width:28px;height:28px;flex:none;border-radius:6px;background:var(--acc,#c2ea68);color:var(--ink,#111)}
+html .gamer-app .duelo-opciones button:not(:disabled):hover{border-color:var(--acc,#c2ea68)}
+html .gamer-app .duelo-opciones button:disabled{cursor:default}
+html .gamer-app .duelo-opciones button.ok{border-color:#22c55e;background:#22c55e26}
+html .gamer-app .duelo-opciones button.mal{border-color:#ef4444;background:#ef444426}
+.duelo-feedback{margin:14px 0 0;font-weight:800}
+.duelo-rank{list-style:none;margin:20px 0 0;padding:0;display:grid;gap:6px;font-size:14px}
+.duelo-rank li{display:flex;justify-content:space-between;gap:10px;padding:7px 10px;border-radius:6px;background:color-mix(in srgb,var(--ln,#38453b) 18%,transparent)}
+.duelo-rank li.yo{outline:2px solid var(--acc,#c2ea68)}
+.duelo-rank.grande{font-size:17px;font-weight:800;margin:14px 0}
+.duelo-fin{text-align:center}.duelo-fin h2{font-size:30px;font-weight:900;margin:0}
+.duelo-xp{margin:6px 0 18px}
+.duelo-art{display:flex;align-items:center;justify-content:center;gap:14px;height:120px;margin-bottom:14px;border-radius:12px;background:linear-gradient(135deg,var(--acc,#c2ea68),#a78bfa);color:#111}
+.duelo-art .ic{width:54px;height:54px}
+@media (max-width:640px){.duelo-page{padding:8px 16px 40px}}

@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Salas del Duelo de Quiz (multijugador)
+    match /duelos/{code} {
+      allow get: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.host == request.auth.uid
+        && request.resource.data.estado == 'espera';
+      allow update, delete: if request.auth != null && resource.data.host == request.auth.uid;
+
+      match /jugadores/{uid} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null && request.auth.uid == uid
+          && get(/databases/$(database)/documents/duelos/$(code)).data.estado == 'espera';
+        allow update: if request.auth != null && request.auth.uid == uid;
+        allow delete: if request.auth != null && (request.auth.uid == uid
+          || get(/databases/$(database)/documents/duelos/$(code)).data.host == request.auth.uid);
+      }
+    }
+  }
+}
