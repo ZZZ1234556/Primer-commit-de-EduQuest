@@ -75,3 +75,22 @@
 .access-screen .avatar-gallery button[aria-pressed=true]{border-color:var(--n-cyan);box-shadow:0 0 12px #22e5ff88}
 @media (max-width:640px){.access-story{border-right:0;border-bottom:1px solid #ff2e9755}.access-story::before{opacity:.3}}
 @media (prefers-reduced-motion:reduce){.welcome-screen *{animation:none}}
+
+/* ---------- PASE DE CÓDIGO ---------- */
+@keyframes pc-colores{from{background-position:0 50%}to{background-position:300% 50%}}
+@keyframes pc-bandera{0%,100%{transform:perspective(900px) rotateY(0) skewY(0)}25%{transform:perspective(900px) rotateY(-3deg) skewY(-.5deg)}50%{transform:perspective(900px) rotateY(0) skewY(.6deg)}75%{transform:perspective(900px) rotateY(3deg) skewY(-.3deg)}}
+@keyframes pc-pliegues{from{background-position:0 0}to{background-position:170px 0}}
+/* letras con colores que se mueven */
+.pase-texto{background:linear-gradient(90deg,#22e5ff,#7dffd0,#ffd23f,#ff2e97,#a78bfa,#22e5ff);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent!important;color:transparent!important;animation:pc-colores 3.2s linear infinite;font-weight:900;filter:drop-shadow(0 0 6px #22e5ff66)}
+/* panel en forma de bandera */
+html .gamer-app .hub-rewards.pase-codigo{position:relative;overflow:hidden;cursor:pointer;min-height:112px;padding:26px 56px 26px 24px;border:2px solid #22e5ff;border-right:0;border-left:10px solid #ffd23f;border-radius:4px;box-shadow:none;
+  background:linear-gradient(100deg,#2a0b4d 0%,#4a0f6b 38%,#8a1366 75%,#ff2e97 135%);
+  clip-path:polygon(0 0,100% 0,calc(100% - 30px) 50%,100% 100%,0 100%);transform-origin:left center;animation:pc-bandera 5s ease-in-out infinite;transition:filter .2s}
+html .gamer-app .hub-rewards.pase-codigo::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,transparent 0,rgba(255,255,255,.16) 35%,rgba(0,0,0,.22) 70%,transparent 100%);background-size:170px 100%;animation:pc-pliegues 3.5s linear infinite}
+html .gamer-app .hub-rewards.pase-codigo>div{position:relative}
+html .gamer-app .hub-rewards.pase-codigo:hover{filter:brightness(1.15)}
+html .gamer-app .hub-rewards.pase-codigo:focus-visible{outline:0;box-shadow:inset 0 0 0 3px #22e5ff}
+html .gamer-app .hub-rewards.pase-codigo .reward-eyebrow{display:block;font-family:'Chakra Petch',sans-serif;font-size:clamp(24px,3.2vw,38px);letter-spacing:.1em;line-height:1.1;margin-bottom:6px}
+html .gamer-app .hub-rewards.pase-codigo strong{color:#fff;text-shadow:0 0 10px #0006}
+html .gamer-app .hub-rewards.pase-codigo p{color:#ecdfff}
+@media (prefers-reduced-motion:reduce){html .gamer-app .hub-rewards.pase-codigo,html .gamer-app .hub-rewards.pase-codigo::before,.pase-texto{animation:none}}

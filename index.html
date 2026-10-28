@@ -237,7 +237,7 @@
         <header class="gamer-header relative z-30 h-20 px-4 sm:px-8 flex items-center justify-between">
           <div class="flex items-center gap-3 cursor-pointer" @click="ir('dashboard')">
             <div class="w-10 h-10 bg-gradient-to-br from-orange-400 to-pink-400 -rotate-6 rounded-xl flex items-center justify-center text-white font-black italic text-lg">E</div>
-            <h2 class="text-xl font-black text-gray-800">{{ titulos[vista] || vista }}</h2>
+            <h2 class="text-xl font-black text-gray-800" :class="{ 'pase-texto': vista === 'recompensas' }">{{ titulos[vista] || vista }}</h2>
           </div>
           <div class="relative">
             <button @click="menuAbierto = !menuAbierto" :aria-expanded="menuAbierto" aria-controls="player-menu" aria-label="Abrir menú de jugador" class="flex items-center gap-3 bg-white rounded-2xl pl-2 pr-4 py-2 border border-gray-200 shadow-sm hover:border-brandOrange transition">
@@ -252,7 +252,7 @@
             <transition name="menu">
               <div id="player-menu" v-if="menuAbierto" @keydown.esc="menuAbierto = false" class="player-menu absolute right-0 mt-2 w-64 bg-white rounded-2xl border border-gray-100 shadow-xl p-2">
                 <a v-for="m in menu" :key="m.v" @click="ir(m.v)" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 cursor-pointer transition" :class="{ 'active': activo(m.v) }">
-                  <ic :n="m.i" class="w-6 h-6"></ic> {{ m.t }}
+                  <ic :n="m.i" class="w-6 h-6"></ic> <span :class="{ 'pase-texto': m.v === 'recompensas' }">{{ m.t }}</span>
                 </a>
                 <div class="border-t border-gray-100 my-1"></div>
                 <a @click="cerrarSesion" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl cursor-pointer transition">
@@ -265,13 +265,13 @@
 
         <nav class="gamer-nav" aria-label="Navegación principal">
           <a href="/" class="gamer-wordmark" @click.prevent="ir('dashboard')">EDU<span>QUEST</span><small>PLAYER HUB</small></a>
-          <div class="gamer-nav-links"><button v-for="m in menu" :key="m.v" type="button" @click="ir(m.v)" :aria-current="activo(m.v) ? 'page' : undefined" :class="{ selected: activo(m.v) }"><navart :n="m.v"></navart>{{ m.t }}</button></div>
+          <div class="gamer-nav-links"><button v-for="m in menu" :key="m.v" type="button" @click="ir(m.v)" :aria-current="activo(m.v) ? 'page' : undefined" :class="{ selected: activo(m.v) }"><navart :n="m.v"></navart><span :class="{ 'pase-texto': m.v === 'recompensas' }">{{ m.t }}</span></button></div>
           <span class="gamer-level">LVL {{ nivelActual }} <b>{{ usuario.xp }} XP</b></span>
         </nav>
         <div class="reward-status success streak-toast" v-if="rachaAviso" role="status"><ic n="flame"></ic> ¡Completaste tu día de racha! Llevas {{ usuario.racha }} {{ usuario.racha === 1 ? 'día' : 'días' }} seguidos.</div>
         <div class="reward-status" v-if="rewardError" role="alert">{{ rewardError }} <span>Las acciones pendientes se reintentan sin duplicar premios. Mantén esta página abierta.</span><button @click="retryRewards" :disabled="busy">Reintentar</button></div>
         <div class="reward-status success" v-else-if="rewardNotice" role="status">{{ rewardNotice }}</div>
-        <div v-if="progress && vista === 'dashboard'" class="hub-rewards"><div><span class="reward-eyebrow">PASE DE AVENTURA</span><strong><img src="/coin.svg" class="coin coin-md" alt="">{{ progress.gold }} de oro · {{ progress.chests }} cofres por abrir</strong><p>Más partidas, más XP, más recompensas.</p></div><button @click="ir('recompensas')">Ver mi camino <ic n="star"></ic></button><button @click="ir('tienda')">Abrir tienda <ic n="gem"></ic></button></div>
+        <div v-if="progress && vista === 'dashboard'" class="hub-rewards pase-codigo" role="button" tabindex="0" aria-label="Abrir el Pase de código" @click="ir('recompensas')" @keydown.enter.prevent="ir('recompensas')" @keydown.space.prevent="ir('recompensas')"><div><span class="reward-eyebrow pase-texto">PASE DE CÓDIGO</span><strong><img src="/coin.svg" class="coin coin-md" alt="">{{ progress.gold }} de oro · {{ progress.chests }} cofres por abrir</strong><p>Más partidas, más XP, más recompensas.</p></div></div>
         <!-- DASHBOARD -->
         <div v-if="vista === 'dashboard'" class="flex-1 px-8 pb-8 flex flex-col xl:flex-row gap-6">
           <div class="flex-1 flex flex-col gap-6">
@@ -935,11 +935,11 @@
         }
         onMounted(() => document.addEventListener('keydown', trapChestFocus));
         onBeforeUnmount(() => document.removeEventListener('keydown', trapChestFocus));
-        const titulos = { dashboard: 'Centro de mando', quizzes: 'Mis Quizzes', bugs: 'Escáner de Bugs', tiro: 'Tiro al Blanco', carrera: 'Carrera de Código', teclas: 'Carrera de Teclas', resultados: 'Resultados', logros: 'Logros', tienda: 'Armería y suministros', recompensas: 'Camino de recompensas', ajustes: 'Ajustes' };
+        const titulos = { dashboard: 'Centro de mando', quizzes: 'Mis Quizzes', bugs: 'Escáner de Bugs', tiro: 'Tiro al Blanco', carrera: 'Carrera de Código', teclas: 'Carrera de Teclas', resultados: 'Resultados', logros: 'Logros', tienda: 'Armería y suministros', recompensas: 'Pase de código', ajustes: 'Ajustes' };
         const menuAbierto = ref(false);
         const menu = [
           { v: 'dashboard', i: 'chart', t: 'Inicio' }, { v: 'quizzes', i: 'book', t: 'Mis Quizzes' },
-          { v: 'logros', i: 'trophy', t: 'Logros' }, { v: 'tienda', i: 'gem', t: 'Tienda' }, { v: 'recompensas', i: 'star', t: 'Recompensas' }, { v: 'ajustes', i: 'gear', t: 'Ajustes' }
+          { v: 'logros', i: 'trophy', t: 'Logros' }, { v: 'tienda', i: 'gem', t: 'Tienda' }, { v: 'recompensas', i: 'star', t: 'Pase de código' }, { v: 'ajustes', i: 'gear', t: 'Ajustes' }
         ];
         const activo = (v) => vista.value === v || (v === 'quizzes' && ['bugs', 'tiro', 'carrera', 'teclas', 'baloncesto', 'resultados'].includes(vista.value));
         function ir(v) { limpiarMini(); jugando.value = false; vista.value = v; menuAbierto.value = false; }
