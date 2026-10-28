@@ -705,7 +705,7 @@
             <div class="duelo-codigo"><b>{{ duelo.code }}</b><button type="button" class="duelo-mini" @click="copiarCodigoDuelo">{{ duelo.copiado ? 'Copiado ✓' : 'Copiar' }}</button></div>
             <h3>Jugadores ({{ duelo.jugadores.length }})</h3>
             <ul class="duelo-lista"><li v-for="j in duelo.jugadores" :key="j.uid"><img v-if="j.avatar" :src="j.avatar" alt=""><span v-else class="duelo-ini">{{ (j.nombre || '?').charAt(0) }}</span>{{ j.nombre }}<em v-if="duelo.sala && j.uid === duelo.sala.host">ANFITRIÓN</em></li></ul>
-            <button v-if="dueloEsHost" type="button" class="duelo-btn" :disabled="duelo.jugadores.length < dueloMin" @click="empezarDuelo">{{ duelo.jugadores.length < dueloMin ? 'ESPERANDO JUGADORES…' : 'EMPEZAR DUELO' }}</button>
+            <button v-if="dueloEsHost" type="button" class="duelo-btn" :disabled="dueloMin > duelo.jugadores.length" @click="empezarDuelo">{{ dueloMin > duelo.jugadores.length ? 'ESPERANDO JUGADORES…' : 'EMPEZAR DUELO' }}</button>
             <p v-else class="duelo-espera">Esperando a que el anfitrión empiece…</p>
             <button type="button" class="duelo-link" @click="dueloSalir()">Salir de la sala</button>
           </div>
