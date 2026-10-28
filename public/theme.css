@@ -1,0 +1,104 @@
+/* Tema EduQuest: neobrutalista, claro/oscuro y Personalizar (se carga al final) */
+@property --hue{syntax:'<number>';inherits:true;initial-value:0}
+@keyframes hue{to{--hue:360}}
+:root{--acc:#ff5c8a;--ink:#111;--acct:#be123c;--acctd:#ff8fb0;--bw:3px;--rad:12px;--glow:0 0 0 transparent;--tglow:none;--bg:#fff3cf;--p:#fff;--ln:#111;--fg:#111;--mut:#3b3b46;--shc:#111;--sh:4px 4px 0 var(--shc);--fb:'Space Grotesk','Segoe UI',sans-serif;--fh:var(--fb);--bgimg:none;--acc2:#facc15}
+html[data-acento=rosa]{--acc:#ff5c8a;--ink:#111;--acct:#be123c;--acctd:#ff8fb0}
+html[data-acento=azul]{--acc:#2563eb;--ink:#fff;--acct:#1d4ed8;--acctd:#60a5fa}
+html[data-acento=lima]{--acc:#a3e635;--ink:#111;--acct:#4d7c0f;--acctd:#bef264}
+html[data-acento=naranja]{--acc:#fb923c;--ink:#111;--acct:#c2410c;--acctd:#fdba74}
+html[data-acento=morado]{--acc:#7c3aed;--ink:#fff;--acct:#6d28d9;--acctd:#a78bfa}
+html[data-acento=cian]{--acc:#22d3ee;--ink:#111;--acct:#0e7490;--acctd:#67e8f9}
+html[data-acento=rojo]{--acc:#ef4444;--ink:#111;--acct:#b91c1c;--acctd:#f87171}
+html[data-acento=amarillo]{--acc:#facc15;--ink:#111;--acct:#a16207;--acctd:#fde047}
+html[data-modo=oscuro]{--bg:#15121b;--p:#201b29;--ln:#f3eee3;--fg:#f7f2e8;--mut:#cbc4d8;--shc:var(--acc);--acct:var(--acctd)}
+html[data-esq=cuadradas]{--rad:2px}html[data-esq=redondas]{--rad:26px}
+html[data-sombra=suave]{--sh:0 10px 28px #0004}html[data-sombra=ninguna]{--sh:0 0 0 transparent}
+html[data-neon=suave]{--glow:0 0 14px color-mix(in srgb,var(--acc) 55%,transparent);--tglow:0 0 10px color-mix(in srgb,var(--acc) 70%,transparent)}
+html[data-neon=intenso],html[data-neon=arcoiris]{--glow:0 0 22px var(--acc),0 0 4px var(--acc);--tglow:0 0 12px var(--acc),0 0 28px var(--acc)}
+html[data-neon=arcoiris]{--acc:hsl(var(--hue) 95% 58%);--ink:#111;--acct:hsl(var(--hue) 90% 32%);animation:hue 8s linear infinite}
+html[data-neon=arcoiris][data-modo=oscuro]{--acct:hsl(var(--hue) 95% 70%)}
+html[data-fuente=moderna]{--fb:'Space Grotesk',sans-serif}
+html[data-fuente=pixel]{--fb:'Space Grotesk',sans-serif;--fh:'Press Start 2P',monospace}
+html[data-fuente=redonda]{--fb:'Nunito',sans-serif;--fh:'Fredoka','Nunito',sans-serif}
+html[data-fuente=tech]{--fb:'Rajdhani',sans-serif;--fh:'Rajdhani',sans-serif}
+html[data-fuente=codigo]{--fb:'JetBrains Mono',monospace;--fh:'JetBrains Mono',monospace}
+html[data-fuente=moderna],html[data-fuente=redonda],html[data-fuente=tech],html[data-fuente=codigo]{--fh:var(--fb)}
+html[data-fuente=redonda]{--fh:'Fredoka','Nunito',sans-serif}html[data-fuente=pixel]{--fh:'Press Start 2P',monospace}
+html[data-fuente=pixel] .gamer-app :is(h1,h2,h3){font-size:.78em;line-height:1.5}
+html[data-fondo=cuadricula]{--bgimg:linear-gradient(color-mix(in srgb,var(--ln) 14%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--ln) 14%,transparent) 1px,transparent 1px);--bgsz:32px 32px}
+html[data-fondo=puntos]{--bgimg:radial-gradient(color-mix(in srgb,var(--ln) 28%,transparent) 2px,transparent 2.5px);--bgsz:22px 22px}
+html[data-fondo=rayas]{--bgimg:repeating-linear-gradient(45deg,color-mix(in srgb,var(--acc) 18%,transparent) 0 14px,transparent 14px 28px)}
+html[data-fondo=aurora]{--bgimg:radial-gradient(circle at 12% 8%,color-mix(in srgb,var(--acc) 45%,transparent),transparent 45%),radial-gradient(circle at 92% 28%,#22d3ee66,transparent 40%),radial-gradient(circle at 50% 100%,#a855f766,transparent 48%)}
+html[data-fondo=synth]{--bgimg:linear-gradient(transparent 55%,color-mix(in srgb,var(--acc) 38%,transparent)),linear-gradient(color-mix(in srgb,var(--acc) 30%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--acc) 30%,transparent) 1px,transparent 1px);--bgsz:auto,44px 44px,44px 44px}
+html[data-fondo=estrellas]{--bgimg:radial-gradient(color-mix(in srgb,var(--fg) 60%,transparent) 1px,transparent 1.6px),radial-gradient(color-mix(in srgb,var(--fg) 45%,transparent) 1px,transparent 1.6px);--bgsz:90px 90px,140px 140px;--bgpos:0 0,45px 60px}
+html[data-fondo=imagen]{--bgsz:cover;--bgpos:center;--bgrep:no-repeat}
+html body,html .gamer-app{background-color:var(--bg);background-image:var(--bgimg);background-size:var(--bgsz,auto);background-position:var(--bgpos,0 0);background-attachment:fixed;background-repeat:var(--bgrep,repeat);color:var(--fg)}
+html .gamer-app{--panel:var(--p);--line:var(--ln);--muted:var(--mut);--accent:var(--acc);font-family:var(--fb)}
+html .gamer-app :is(h1,h2,h3,h4,.gamer-wordmark){font-family:var(--fh);text-shadow:var(--tglow)}
+html .gamer-app .gamer-header{background:var(--p);border-bottom:var(--bw) solid var(--ln)}
+html .gamer-header>div:first-child>div:first-child{background:var(--acc);color:var(--ink);border:var(--bw) solid var(--ln);border-radius:var(--rad)}
+html .gamer-app :is(.text-gray-800,.text-gray-700,.text-indigo-900,.text-gray-600){color:var(--fg)}
+html .gamer-app :is(.text-gray-500,.text-gray-400,.text-gray-300){color:var(--mut)}
+html .gamer-app :is(.text-brandOrange,.text-orange-500,.text-orange-600,.text-orange-800,.text-orange-700,.text-yellow-800,.text-yellow-700,.text-blue-800,.text-blue-600,.text-indigo-800){color:var(--acct)}
+html .gamer-app :is(.bg-white,.bg-gray-50,.bg-gray-100,.bg-yellow-100,.bg-blue-50,.bg-orange-50,.bg-red-50,.bg-orange-100,.bg-blue-100,.bg-green-100){background-color:var(--p)}
+html .gamer-app :is(.border-gray-100,.border-gray-200,.border-gray-300,.border-white,.border-blue-100,.border-red-100,.border-orange-100,.border-orange-200,.border-gray-800){border-color:var(--ln)}
+html .gamer-app :is(.rounded-3xl,.rounded-2xl){border-radius:var(--rad)}
+html .gamer-app :is(.rounded-xl,.rounded-lg){border-radius:calc(var(--rad)*.6)}
+html .gamer-app .card-shadow{border:var(--bw) solid var(--ln);box-shadow:var(--sh),var(--glow)}
+html .gamer-app .card-shadow::before{display:none}
+html .gamer-app .bg-gradient-to-r{background-image:none;background-color:var(--p);box-shadow:inset 8px 0 0 var(--acc)}
+html .gamer-app .bg-gradient-to-r.h-full{background-image:none;background-color:var(--acc);box-shadow:none}
+html .gamer-app .bg-brandOrange{background:var(--acc);color:var(--ink);border-color:var(--ln)}
+html .gamer-app .hover\:bg-orange-600:hover{background:var(--acc);filter:brightness(1.1)}
+html .gamer-app :is(.hover\:bg-orange-50,.hover\:bg-gray-50):hover{background:color-mix(in srgb,var(--acc) 24%,var(--p))}
+html .gamer-app :is(button,a).transition:hover{border-color:var(--ln)}
+html .gamer-app .bg-green-50{background:color-mix(in srgb,#22c55e 25%,var(--p))}html .gamer-app .text-green-700{color:var(--fg)}
+html .gamer-app .bg-red-50.border-red-500{background:color-mix(in srgb,#ef4444 25%,var(--p))}html .gamer-app :is(.text-red-700,.text-red-800,.text-red-600){color:var(--fg)}
+html .gamer-app .cal-absent{background:color-mix(in srgb,var(--ln) 12%,var(--p));color:var(--mut)}
+html .gamer-app .cal-present{background:var(--acc);color:var(--ink)}
+html .gamer-app .cal-today{color:var(--fg);border-color:var(--ln)}
+html .gamer-app .gamer-nav{border:var(--bw) solid var(--ln);background:var(--p);border-radius:var(--rad);box-shadow:var(--sh),var(--glow)}
+html .gamer-wordmark{color:var(--fg)}html .gamer-wordmark>span{color:var(--acct)}html .gamer-wordmark small{color:var(--mut)}
+html .gamer-nav-links button{color:var(--mut);border-radius:calc(var(--rad)*.6)}
+html .gamer-nav-links button:hover{color:var(--fg);background:color-mix(in srgb,var(--acc) 22%,transparent)}
+html .gamer-nav-links button.selected{background:var(--acc);color:var(--ink);border-color:var(--ln)}
+html .gamer-app .player-menu{border:var(--bw) solid var(--ln);box-shadow:var(--sh)}
+html .gamer-app .nav-item.active{background:color-mix(in srgb,var(--acc) 25%,transparent);color:var(--acct);border-left:3px solid var(--acc)}
+html .gamer-app .nav-item:hover{background:color-mix(in srgb,var(--acc) 18%,transparent);color:var(--fg)}
+html .gamer-app input[type=text]{background:var(--p);color:var(--fg);border:2px solid var(--ln)}
+html .gamer-app .streak-note{background:color-mix(in srgb,var(--ln) 10%,var(--p));color:var(--mut);border:2px solid var(--ln)}
+html .gamer-app .streak-note.done{background:var(--acc);color:var(--ink)}html .gamer-app .cal-month-count{color:var(--mut)}
+/* Recompensas, tienda y logros */
+html .gamer-app :is(.wallet,.progress-strip,.journey-intro,.road-stop,.shop-item,.inventory,.inventory-profile,.inventory-chest,.inventory-row,.achievement,.hub-rewards,.reward-loading,.shop-rotation){background:var(--p);border:var(--bw) solid var(--ln);border-radius:var(--rad);box-shadow:var(--sh),var(--glow);color:var(--fg)}
+html .gamer-app :is(.wallet,.progress-strip,.inventory-profile,.inventory-chest,.inventory-row,.shop-rotation){box-shadow:none;border-width:2px}
+html .gamer-app :is(.road-stop.unlocked,.achievement.unlocked){background:color-mix(in srgb,var(--acc) 24%,var(--p))}html .gamer-app .road-stop.claimed{opacity:.72}
+html .gamer-app :is(.reward-page,.hub-rewards,.inventory,.shop-item,.achievement,.road-stop,.journey-intro,.progress-strip,.wallet,.shop-rotation) :is(p,span,small,strong,b,h1,h2,h3,em,label):not(button *){color:var(--fg)}
+html .gamer-app :is(.reward-eyebrow,.shop-item .reward-eyebrow,.title-preview,.shop-rotation b){color:var(--acct)}
+html .gamer-app :is(.reward-page,.hub-rewards) button{background:var(--acc);color:var(--ink);border:2px solid var(--ln);border-radius:calc(var(--rad)*.6);box-shadow:2px 2px 0 var(--shc)}
+html .gamer-app :is(.reward-page,.hub-rewards) button:disabled{background:color-mix(in srgb,var(--ln) 14%,var(--p));color:var(--mut);box-shadow:none}
+html .gamer-app :is(.reward-page,.hub-rewards) button *{color:inherit}
+html progress{background:color-mix(in srgb,var(--ln) 14%,var(--p))}html progress::-webkit-progress-bar{background:color-mix(in srgb,var(--ln) 14%,var(--p))}html progress::-webkit-progress-value{background:var(--acc)}html progress::-moz-progress-bar{background:var(--acc)}
+html .gamer-app .bb-op{background:var(--p);color:var(--fg);border:2px solid var(--ln)}html .gamer-app .bb-op.ok{background:#86efac;color:#111}html .gamer-app .bb-op.mal{background:#fca5a5;color:#111}
+/* Imágenes de juegos, botón claro/oscuro y Personalizar */
+.game-art{display:block;width:100%;height:124px;object-fit:cover;margin-bottom:14px;border:var(--bw) solid var(--ln);border-radius:calc(var(--rad)*.6)}
+.theme-fab{position:fixed;right:18px;bottom:18px;z-index:60;width:48px;height:48px;display:grid;place-items:center;border:var(--bw) solid var(--ln);border-radius:50%;background:var(--acc);color:var(--ink);box-shadow:var(--sh),var(--glow);cursor:pointer}
+.pz-label{margin:0 0 8px;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.pz-opts{display:flex;flex-wrap:wrap;gap:8px}
+.pz-opt,.pz-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:2px solid var(--ln);border-radius:calc(var(--rad)*.6);background:var(--p);color:var(--fg);font-weight:700;font-size:14px;cursor:pointer;box-shadow:2px 2px 0 var(--shc)}
+.pz-opt.on{background:var(--acc);color:var(--ink)}.pz-opt.sw{width:36px;height:36px;padding:0;border-radius:50%}.pz-opt.sw.on{outline:3px solid var(--fg);outline-offset:2px}
+.pz-msg{margin-left:10px;font-size:13px;color:var(--acct);font-weight:700}
+/* ===== Trofeos (se adaptan al tema) ===== */
+html :is(.trofeo-toast,.trofeo-panel,.trofeo-card,.trofeo-platino,.trofeo-strip){background:var(--p);color:var(--fg);border:var(--bw) solid var(--ln);border-radius:var(--rad);box-shadow:var(--sh),var(--glow)}
+html :is(.trofeo-card,.trofeo-strip){box-shadow:none;border-width:2px}
+html :is(.trofeo-toast.platino,.trofeo-platino.on,.trofeo-card.platino.on){border-color:#0ea5e9;background:color-mix(in srgb,#38bdf8 18%,var(--p))}
+html :is(.trofeo-card.on,.trofeo-strip.completo){background:color-mix(in srgb,var(--acc) 22%,var(--p))}
+html :is(.trofeo-txt strong,.trofeo-card h4,.trofeo-platino h2,.trofeo-panel h2,.trofeo-grupo h3){color:var(--fg)}
+html :is(.trofeo-txt small,.trofeo-tag,.trofeo-platino small,.trofeo-strip-top em){color:var(--acct)}
+html :is(.trofeo-txt span,.trofeo-card p,.trofeo-card small,.trofeo-platino p,.trofeo-grupo h3 span,.trofeo-panel-sub){color:var(--mut)}
+html .trofeo-card:not(.on) h4{color:var(--mut)}
+html .trofeo-img{background:color-mix(in srgb,var(--acc) 18%,var(--p));border:2px solid var(--ln)}
+html :is(.trofeo-card,.trofeo-strip,.trofeo-panel,.trofeo-platino) progress{accent-color:var(--acc)}
+html .trofeo-strip b{color:var(--fg)}
+html .trofeo-panel header button{background:var(--acc);color:var(--ink);border:2px solid var(--ln);border-radius:calc(var(--rad)*.6)}
+html .theme-fab{right:auto;left:18px}
+html .trofeo-strip-top b,html .trofeo-strip .trofeo-strip-top b{color:var(--fg)}

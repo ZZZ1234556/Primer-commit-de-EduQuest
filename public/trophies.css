@@ -1,0 +1,88 @@
+/* Aviso de trofeo (esquina) */
+.trofeo-toast{position:fixed;right:18px;bottom:18px;z-index:9999;display:flex;align-items:center;gap:14px;max-width:min(380px,calc(100vw - 36px));padding:12px 18px 12px 12px;background:#12190f;color:#edf1e8;border:1px solid #4d643e;border-left:5px solid #c08457;border-radius:6px;box-shadow:0 12px 32px rgba(0,0,0,.45);cursor:pointer}
+.trofeo-toast.platino{border-left-color:#7dd3fc;background:linear-gradient(135deg,#0f1b24,#16283a);box-shadow:0 0 0 1px #7dd3fc55,0 12px 36px rgba(125,211,252,.35)}
+.trofeo-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.trofeo-txt small{font:700 10.5px 'Chakra Petch',sans-serif;letter-spacing:.14em;color:#c2ea68}
+.trofeo-toast.platino .trofeo-txt small{color:#7dd3fc}
+.trofeo-txt strong{font-size:16px;font-weight:900;line-height:1.2}
+.trofeo-txt span{font-size:12.5px;color:#b6bfa8;line-height:1.3}
+.trofeo-img{position:relative;flex:none;width:58px;height:58px;border-radius:8px;background:#1d2a1b;border:1px solid #38453b;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.trofeo-img .ic{width:60%;height:60%}
+.trofeo-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.trofeo-img.big{width:96px;height:96px}
+.trofeo-enter-active{transition:transform .45s cubic-bezier(.2,1.2,.3,1),opacity .3s}
+.trofeo-leave-active{transition:transform .35s ease-in,opacity .3s}
+.trofeo-enter-from,.trofeo-leave-to{transform:translateX(120%);opacity:0}
+@media (prefers-reduced-motion:reduce){.trofeo-enter-active,.trofeo-leave-active{transition:opacity .2s}.trofeo-enter-from,.trofeo-leave-to{transform:none}}
+
+/* Página de trofeos */
+.trofeos-page{padding:8px 16px 40px;max-width:1100px;margin:0 auto;width:100%}
+.trofeo-platino{display:flex;align-items:center;gap:20px;padding:20px;margin-bottom:24px;background:#161e1a;border:1px solid #38453b;border-radius:8px;color:#edf1e8}
+.trofeo-platino .trofeo-img{filter:grayscale(1) brightness(.6)}
+.trofeo-platino.on{border-color:#7dd3fc;background:linear-gradient(135deg,#0f1b24,#16283a);box-shadow:0 0 28px rgba(125,211,252,.25)}
+.trofeo-platino.on .trofeo-img{filter:none}
+.trofeo-platino small{font:700 11px 'Chakra Petch',sans-serif;letter-spacing:.14em;color:#7dd3fc}
+.trofeo-platino h2{font-size:26px;font-weight:900;margin:2px 0}
+.trofeo-platino p{font-size:13px;color:#b6bfa8;margin:0 0 8px}
+.trofeo-platino progress{width:min(320px,100%);height:10px;accent-color:#7dd3fc;vertical-align:middle;margin-right:10px}
+.trofeo-grupo{margin-bottom:26px}
+.trofeo-grupo h3{font:700 15px 'Chakra Petch',sans-serif;letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:#edf1e8}
+.trofeo-grupo h3 span{color:#a5b2a5;font-weight:600;margin-left:8px}
+.trofeo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.trofeo-card{display:flex;gap:12px;align-items:center;padding:12px;background:#161e1a;border:1px solid #38453b;border-left:5px solid #c08457;border-radius:6px;color:#edf1e8}
+.trofeo-card:not(.on) .trofeo-img{filter:grayscale(1) brightness(.55)}
+.trofeo-card:not(.on) h4{color:#9aa79a}
+.trofeo-card h4{font-size:14.5px;font-weight:800;margin:0 0 2px}
+.trofeo-card p{font-size:12px;color:#b6bfa8;margin:0 0 6px;line-height:1.3}
+.trofeo-card progress{width:100%;height:6px;accent-color:#c2ea68}
+.trofeo-card small{font-size:11px;color:#829082}
+@media (max-width:520px){.trofeo-platino{flex-direction:column;text-align:center}.trofeo-toast{right:10px;bottom:10px}}
+
+/* ===== Movimiento de los trofeos ===== */
+.trofeo-img::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.55) 50%,transparent 65%);transform:translateX(-130%);pointer-events:none;opacity:0}
+@keyframes trofeo-flota{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-5px) rotate(1.5deg)}}
+@keyframes trofeo-brillo{0%,55%{transform:translateX(-130%)}100%{transform:translateX(130%)}}
+@keyframes trofeo-pop{0%{transform:scale(.4) rotate(-12deg)}60%{transform:scale(1.2) rotate(6deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes trofeo-aura{0%,100%{box-shadow:0 0 0 rgba(125,211,252,0)}50%{box-shadow:0 0 22px rgba(125,211,252,.75)}}
+@keyframes trofeo-aura-oro{0%,100%{box-shadow:0 0 0 rgba(250,204,21,0)}50%{box-shadow:0 0 14px rgba(250,204,21,.6)}}
+/* trofeos ya ganados: flotan y brillan */
+.trofeo-card.on .trofeo-img{animation:trofeo-flota 3.2s ease-in-out infinite}
+.trofeo-card.on .trofeo-img::after{opacity:1;animation:trofeo-brillo 3.2s ease-in-out infinite}
+.trofeo-card.on.profesional .trofeo-img{animation:trofeo-flota 3.2s ease-in-out infinite,trofeo-aura-oro 2.4s ease-in-out infinite}
+.trofeo-card.on.platino .trofeo-img{animation:trofeo-flota 3.4s ease-in-out infinite,trofeo-aura 2.2s ease-in-out infinite}
+.trofeo-platino.on .trofeo-img{animation:trofeo-flota 3.6s ease-in-out infinite,trofeo-aura 2.2s ease-in-out infinite}
+.trofeo-platino.on .trofeo-img::after{opacity:1;animation:trofeo-brillo 2.6s ease-in-out infinite}
+/* aviso: la imagen salta al aparecer y luego brilla */
+.trofeo-toast .trofeo-img{animation:trofeo-pop .7s cubic-bezier(.2,1.3,.3,1) both}
+.trofeo-toast .trofeo-img::after{opacity:1;animation:trofeo-brillo 1.6s ease-in-out .5s 2}
+.trofeo-toast.platino .trofeo-img{animation:trofeo-pop .7s cubic-bezier(.2,1.3,.3,1) both,trofeo-aura 1.4s ease-in-out .7s infinite}
+@media (prefers-reduced-motion:reduce){.trofeo-img,.trofeo-img::after{animation:none!important}}
+
+/* ===== Niveles (colores) ===== */
+.novato{--tier:#b0805a}.aprendiz{--tier:#7bc47f}.medio{--tier:#60a5fa}.superior{--tier:#a78bfa}
+.mega{--tier:#f472b6}.experto{--tier:#fb923c}.profesional{--tier:#facc15}.platino{--tier:#7dd3fc}
+.trofeo-toast,.trofeo-card{border-left-color:var(--tier,#b0805a)}
+.trofeo-tag{display:inline-block;font:700 10px 'Chakra Petch',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--tier);margin-bottom:2px}
+.trofeo-card:not(.on) .trofeo-tag{opacity:.55}
+
+/* ===== Resumen debajo de cada juego ===== */
+.trofeo-strip{display:block;width:100%;margin-top:14px;padding:9px 11px;border:1px solid #354638;border-radius:4px;background:#12190f;color:#edf1e8;text-align:left;font:inherit;cursor:pointer;transition:border-color .2s,transform .2s}
+.trofeo-strip:hover,.trofeo-strip:focus-visible{border-color:#c2ea68;transform:translateY(-1px)}
+.trofeo-strip-top{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;margin-bottom:6px}
+.trofeo-strip-top .ic{width:16px;height:16px}
+.trofeo-strip-top b{margin-left:auto;color:#c2ea68}
+.trofeo-strip-top em{font-style:normal;font-size:10.5px;color:#829082;font-weight:600}
+.trofeo-strip progress{display:block;width:100%;height:6px;accent-color:#c2ea68}
+.trofeo-strip.completo{border-color:#7dd3fc}.trofeo-strip.completo .trofeo-strip-top b{color:#7dd3fc}
+
+/* ===== Mini apartado de trofeos del juego ===== */
+.trofeo-modal{position:fixed;inset:0;z-index:9990;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,9,7,.72)}
+.trofeo-panel{width:min(560px,100%);max-height:88vh;display:flex;flex-direction:column;background:#101615;border:1px solid #354638;border-radius:8px;color:#edf1e8;outline:none;box-shadow:0 20px 50px rgba(0,0,0,.6)}
+.trofeo-panel header{display:flex;align-items:center;gap:12px;padding:16px 18px 12px;border-bottom:1px solid #354638}
+.trofeo-panel header h2{font-size:19px;font-weight:900;margin:0;flex:1;min-width:0}
+.trofeo-panel header button{flex:none;width:34px;height:34px;border-radius:4px;border:1px solid #354638;background:#19221e;color:#edf1e8;font-size:18px;line-height:1;cursor:pointer}
+.trofeo-panel header button:hover{border-color:#c2ea68}
+.trofeo-panel-sub{padding:10px 18px 4px;font-size:12.5px;color:#a5b2a5}
+.trofeo-panel-sub progress{display:block;width:100%;height:8px;margin-top:6px;accent-color:#c2ea68}
+.trofeo-lista{display:flex;flex-direction:column;gap:10px;padding:12px 18px 18px;overflow-y:auto}
+@media (max-width:520px){.trofeo-modal{padding:8px;align-items:flex-end}.trofeo-panel{max-height:92vh}}

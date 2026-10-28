@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduQuest - Tu Aventura</title>
+
+  <link rel="stylesheet" href="/welcome.css">
+  <link rel="stylesheet" href="/access.css">
+  <link rel="stylesheet" href="/gamer.css">
+  <link rel="stylesheet" href="/rewards.css">
+  <link rel="stylesheet" href="/extras.css">
+  <link rel="stylesheet" href="/trophies.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Press+Start+2P&family=Fredoka:wght@500;700&family=Nunito:wght@600;800&family=Rajdhani:wght@600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+  <link rel="stylesheet" href="/theme.css">
+  <link rel="stylesheet" href="/neon.css">
+  <script>(function(){var D={modo:"claro",acento:"rosa",fondo:"liso",fuente:"moderna",neon:"off",esq:"normal",sombra:"dura"};function leer(){try{return Object.assign({},D,JSON.parse(localStorage.getItem("eduquest_tema")||"{}"))}catch(e){return Object.assign({},D)}}function aplicar(t){var r=document.documentElement,m=t.modo;if(m==="auto")m=matchMedia("(prefers-color-scheme: dark)").matches?"oscuro":"claro";r.dataset.modo=m;["acento","fondo","fuente","neon","esq","sombra"].forEach(function(k){r.dataset[k]=t[k]});var img=null;try{img=localStorage.getItem("eduquest_fondo")}catch(e){}if(t.fondo==="imagen"&&img)r.style.setProperty("--bgimg",'url("'+img+'")');else r.style.removeProperty("--bgimg")}window.eduTema={D:D,leer:leer,aplicar:aplicar};aplicar(leer())})();</script>
+  <script>window.eduAuthReady = new Promise(function (r) { window.__eduAuthResolve = r; });</script>
+  <script src="/rewards-client.js"></script>
+  <script src="/trophies.js"></script>
+
+  <!-- Vue 3 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Nunito', 'sans-serif'] },
+          colors: {
+            brandBg: '#fdfbf7',
+            brandYellow: '#fcd34d',
+            brandOrange: '#fb923c',
+            brandText: '#1f2937',
+            brandGray: '#9ca3af'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Nunito', sans-serif; background-color: #fdfbf7; color: #1f2937; }
+    .card-shadow { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+    .nav-item:hover { background-color: #fef3c7; color: #d97706; }
+    .nav-item.active { background-color: #fef3c7; color: #d97706; font-weight: 800; border-left: 4px solid #d97706; }
+    .cal-day { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 12px; font-weight: 700; }
+    .cal-absent { background-color: #f3f4f6; color: #9ca3af; }
+    .cal-present { background-color: #fcd34d; color: #92400e; }
+    .scan-box::after { content:''; position:absolute; left:0; right:0; top:0; height:2px; pointer-events:none;
+      background:linear-gradient(90deg,transparent,#fb923c,transparent); animation:scan 2.6s linear infinite; }
+    @keyframes scan { to { top:100%; } }
+    .arena { cursor: crosshair; }
+    .blanco { width:92px; height:92px; border-radius:9999px; display:flex; align-items:center; justify-content:center;
+      background:repeating-radial-gradient(circle,#fff 0 9px,#fb923c 9px 18px); border:3px solid #fff;
+      box-shadow:0 4px 14px rgba(0,0,0,.15); animation:popIn .4s cubic-bezier(.2,1.6,.4,1) backwards, bob var(--dur,2.4s) ease-in-out .4s infinite alternate; transition:transform .15s; }
+    .blanco:hover { transform:scale(1.08); }
+    .blanco span { background:rgba(255,255,255,.95); padding:2px 6px; border-radius:8px; font:700 11px 'Fira Code',monospace; color:#1f2937; max-width:80px; overflow:hidden; text-overflow:ellipsis; }
+    .blanco.ok { background:#22c55e; transform:scale(1.2); animation:none; }
+    .blanco.mal { background:#ef4444; animation:shake .3s; }
+    @keyframes bob { from { margin-top:-14px; } to { margin-top:14px; } }
+    @keyframes shake { 25% { transform:translateX(-6px); } 75% { transform:translateX(6px); } }
+    @media (prefers-reduced-motion: reduce) { .scan-box::after, .blanco { animation:none; } }
+    @keyframes floaty { 0%,100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-18px) rotate(8deg); } }
+    @keyframes wiggle { 0%,100% { transform: rotate(-8deg); } 50% { transform: rotate(10deg) scale(1.08); } }
+    .floaty { animation: floaty 4s ease-in-out infinite; }
+    .wiggle { animation: wiggle 2.2s ease-in-out infinite; }
+    .login-bg { background: linear-gradient(135deg, #fde68a 0%, #fda4af 50%, #a5b4fc 100%); }
+    .pop-card { border: 4px solid #1f2937; box-shadow: 8px 8px 0 #1f2937; }
+    @media (prefers-reduced-motion: reduce) { .floaty, .wiggle { animation: none; } }
+    .menu-enter-active, .menu-leave-active { transition: all .18s ease; }
+    .menu-enter-from, .menu-leave-to { opacity: 0; transform: translateY(-8px) scale(.97); }
+    @keyframes pop { 0% { transform: scale(1.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes popIn { from { scale: 0; opacity: 0; } to { scale: 1; opacity: 1; } }
+    @keyframes lineIn { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
+    @keyframes cardIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+    @keyframes pulseOk { 0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,.7); } 50% { box-shadow: 0 0 0 10px rgba(34,197,94,0); } }
+    @keyframes floatUp { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-46px) scale(1.4); } }
+    @keyframes burst { from { opacity: 1; transform: translate(-50%,-50%) scale(.3); } to { opacity: 0; transform: translate(-50%,-50%) scale(2); } }
+    @keyframes road { from { background-position: 0 50%, 0 0; } to { background-position: -64px 50%, 0 0; } }
+    @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+    @keyframes blink { 50% { opacity: .35; } }
+    .tc-ok { color: #86efac; } .tc-pend { color: #9ca3af; }
+    .tc-bad { color: #fecaca; background: rgba(239,68,68,.45); border-radius: 3px; text-decoration: underline; }
+    .tc-cur { background: #fb923c; color: #111827; border-radius: 3px; animation: blink 1s infinite; }
+    @keyframes flame { from { transform: scale(.8) translateX(0); } to { transform: scale(1.2) translateX(-4px); } }
+    .scan-box { animation: cardIn .35s ease both; }
+    .linea-in { animation: lineIn .35s ease both; }
+    .pulse-ok { animation: pulseOk .6s ease 2; }
+    .shake-bad { animation: shake .35s; }
+    .corazones { animation: pop .35s ease; }
+    .xp-float { position: absolute; right: 16px; top: 8px; z-index: 5; font-weight: 900; color: #22c55e; font-size: 20px; animation: floatUp 1s ease-out forwards; pointer-events: none; }
+    .blanco.ok::after { content: ''; position: absolute; left: 50%; top: 50%; width: 70px; height: 70px; animation: burst .6s ease-out forwards; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M20 2l4 11 11-4-6 10 9 7-12 1 1 12-7-9-7 9 1-12-12-1 9-7-6-10 11 4z' fill='%23fcd34d' stroke='%23f97316' stroke-width='2'/%3E%3C/svg%3E") center / contain no-repeat; }
+    .arena { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%23ef4444' stroke-width='3'/%3E%3Cpath d='M16 2v8M16 22v8M2 16h8M22 16h8' stroke='%23ef4444' stroke-width='3'/%3E%3C/svg%3E") 16 16, crosshair; }
+    .carril { background: repeating-linear-gradient(90deg, rgba(255,255,255,.5) 0 28px, transparent 28px 64px) 0 50% / 64px 4px repeat-x, #4b5563; animation: road var(--v, .5s) linear infinite; }
+    .meta { position: absolute; right: 0; top: 0; bottom: 0; width: 16px; background: repeating-conic-gradient(#fff 0 25%, #111 0 50%) 0 0 / 12px 12px; z-index: 2; }
+    :where(.ic) { width: 1.25em; height: 1.25em; display: inline-block; vertical-align: -0.25em; flex-shrink: 0; }
+    .auto { display: inline-block; }
+    .auto.spin { animation: spin .6s linear; }
+    .llama { display: inline-block; animation: flame .15s ease-in-out infinite alternate; }
+    .cuenta { font-weight: 900; font-size: 72px; color: #fff; text-shadow: 0 5px 0 #1f2937; animation: pop .6s ease both; }
+    @media (prefers-reduced-motion: reduce) { .carril, .llama, .scan-box, .linea-in { animation: none; } }
+    .cal-today { border: 2px solid #fb923c; color: #fb923c; }
+  </style>
+</head>
+<body class="min-h-screen flex">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="i-ball" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><circle cx="16" cy="16" r="13" fill="#fb923c"/><path d="M3 16h26M16 3v26M6.5 6.5c4 4 4 15 0 19M25.5 6.5c-4 4-4 15 0 19" fill="none"/></symbol><symbol id="i-star" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M16 3l3.900 8.100 8.900 1.200-6.500 6.200 1.700 8.800L16 23l-8 4.300 1.700-8.800-6.500-6.200 8.900-1.200z" fill="#fcd34d"/></symbol><symbol id="i-rocket" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M16 3c5 3 7 9 6 16H10c-1-7 1-13 6-16z" fill="#fff"/><circle cx="16" cy="12" r="2.600" fill="#7dd3fc"/><path d="M10 16l-4 6 5-1zM22 16l4 6-5-1z" fill="#fb923c"/><path d="M13 22h6l-3 7z" fill="#fcd34d"/></symbol><symbol id="i-bulb" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M16 3a8 8 0 0 0-4.500 14.600c.8.7 1.100 1.500 1.100 2.400h6.800c0-.9.3-1.700 1.100-2.400A8 8 0 0 0 16 3z" fill="#fde68a"/><path d="M13 24h6M14 28h4" fill="none"/></symbol><symbol id="i-pad" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect x="3" y="9" width="26" height="15" rx="7.500" fill="#a5b4fc"/><path d="M10 13v7M6.500 16.500h7" fill="none" stroke-width="2.400"/><circle cx="21" cy="14.500" r="1.800" fill="#fb923c"/><circle cx="24.500" cy="18.500" r="1.800" fill="#f472b6"/></symbol><symbol id="i-flame" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M16 3c1 5 7 8 7 15a7 7 0 0 1-14 0c0-3 2-5 3-7 .5 2 1.500 3 2.500 3C14 10 15 6 16 3z" fill="#fb923c"/><path d="M16 17c1.500 2 3 3 3 5a3 3 0 0 1-6 0c0-2 2-3 3-5z" fill="#fde047"/></symbol><symbol id="i-bug" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><ellipse cx="16" cy="20" rx="7" ry="8" fill="#86efac"/><circle cx="16" cy="10" r="4" fill="#4ade80"/><path d="M16 13v15M9 17l-5-2M9 22l-5 2M23 17l5-2M23 22l5 2M13 7L11 4M19 7l2-3" fill="none"/><circle cx="14.500" cy="9.500" r="1" fill="#1f2937"/><circle cx="17.500" cy="9.500" r="1" fill="#1f2937"/></symbol><symbol id="i-target" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><circle cx="14" cy="18" r="11" fill="#fff"/><circle cx="14" cy="18" r="7" fill="#f87171"/><circle cx="14" cy="18" r="3" fill="#fff"/><path d="M14 18L27 5M23 4l5 .5-.5 5" fill="none" stroke-width="2.400"/></symbol><symbol id="i-trophy" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M9 4h14v8a7 7 0 0 1-14 0z" fill="#fcd34d"/><path d="M9 7H4c0 5 2 7 5 7M23 7h5c0 5-2 7-5 7" fill="none"/><path d="M16 19v5M11 28h10l-1-4h-8z" fill="#f59e0b"/></symbol><symbol id="i-medal" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M10 3l6 10M22 3l-6 10" fill="none" stroke="#ef4444" stroke-width="3"/><circle cx="16" cy="21" r="8" fill="currentColor"/><path d="M16 16.500l1.500 3 3.300.4-2.400 2.300.6 3.300-3-1.600-3 1.600.6-3.300-2.400-2.300 3.300-.4z" fill="#fff" stroke="none"/></symbol><symbol id="i-quiz" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M5 6h22a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H15l-6 5v-5H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" fill="#93c5fd"/><path d="M13 12a3 3 0 1 1 4 2.800c-1 .5-1 1.200-1 2" fill="none" stroke-width="2.400"/><circle cx="16" cy="20" r="1.300" fill="#1f2937"/></symbol><symbol id="i-heart" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M16 28S4 20 4 12a6 6 0 0 1 12-2 6 6 0 0 1 12 2c0 8-12 16-12 16z" fill="#f87171"/></symbol><symbol id="i-heart-off" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M16 28S4 20 4 12a6 6 0 0 1 12-2 6 6 0 0 1 12 2c0 8-12 16-12 16z" fill="#e5e7eb" stroke="#9ca3af"/></symbol><symbol id="i-confetti" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M4 28l5-15 10 10z" fill="#fb923c"/><circle cx="20" cy="8" r="2" fill="#f472b6"/><rect x="24" y="13" width="3.500" height="3.500" fill="#60a5fa" transform="rotate(20 26 15)"/><path d="M14 5l1 4M24 22l4 1M20 14l3-2" fill="none" stroke="#34d399"/></symbol><symbol id="i-pencil" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M5 27l1.500-7L21 5.500a2.500 2.500 0 0 1 3.500 0l2 2a2.500 2.500 0 0 1 0 3.500L12 25.500z" fill="#fcd34d"/><path d="M19 8l5 5" fill="none"/></symbol><symbol id="i-camera" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect x="3" y="9" width="26" height="18" rx="4" fill="#f9a8d4"/><path d="M11 9l2-4h6l2 4" fill="#f9a8d4"/><circle cx="16" cy="18" r="5" fill="#fff"/><circle cx="16" cy="18" r="2" fill="#60a5fa"/></symbol><symbol id="i-user" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><circle cx="16" cy="11" r="6" fill="#fdba74"/><path d="M4 29c1-7 6-10 12-10s11 3 12 10z" fill="#a5b4fc"/></symbol><symbol id="i-door" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M5 3h13v26H5z" fill="#fdba74"/><circle cx="14.500" cy="16" r="1.500" fill="#1f2937"/><path d="M22 11l5 5-5 5M27 16H19" fill="none"/></symbol><symbol id="i-spark" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M16 3l3 10 10 3-10 3-3 10-3-10-10-3 10-3z" fill="#fde047"/></symbol><symbol id="i-gem" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M9 5h14l6 8-13 15L3 13z" fill="#7dd3fc"/><path d="M3 13h26M12 5l-3 8 7 15 7-15-3-8" fill="none"/></symbol><symbol id="i-badge" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><circle cx="16" cy="13" r="9" fill="#fdba74"/><path d="M11 21l-3 8 8-3 8 3-3-8" fill="#fb923c"/><path d="M16 8l1.600 3.300 3.600.5-2.600 2.500.6 3.600-3.200-1.700-3.200 1.700.6-3.600-2.600-2.500 3.600-.5z" fill="#fff" stroke="none"/></symbol><symbol id="i-dice" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect x="4" y="4" width="24" height="24" rx="6" fill="#fff"/><g fill="#1f2937" stroke="none"><circle cx="11" cy="11" r="2"/><circle cx="21" cy="11" r="2"/><circle cx="16" cy="16" r="2"/><circle cx="11" cy="21" r="2"/><circle cx="21" cy="21" r="2"/></g></symbol><symbol id="i-code" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M12 8L4 16l8 8M20 8l8 8-8 8" fill="none" stroke-width="3"/><path d="M18 5l-4 22" fill="none" stroke="#fb923c" stroke-width="3"/></symbol><symbol id="i-clock" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><circle cx="16" cy="17" r="11" fill="#fff"/><path d="M16 10v7l5 3M13 3h6" fill="none"/></symbol><symbol id="i-flag" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M7 3v26" fill="none" stroke-width="3"/><path d="M7 5h18l-3 5 3 5H7z" fill="#fff"/><path d="M7 5h6v5H7zM19 5h4v5h-4zM13 10h6v5h-6z" fill="#1f2937" stroke="none"/></symbol><symbol id="i-lock" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect x="6" y="14" width="20" height="14" rx="3" fill="#d1d5db"/><path d="M10 14v-3a6 6 0 0 1 12 0v3" fill="none"/><circle cx="16" cy="21" r="2" fill="#1f2937"/></symbol><symbol id="i-chart" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect x="4" y="16" width="6" height="12" fill="#93c5fd"/><rect x="13" y="8" width="6" height="20" fill="#fdba74"/><rect x="22" y="12" width="6" height="16" fill="#86efac"/></symbol><symbol id="i-book" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M4 6c4-2 8-2 12 1v21c-4-3-8-3-12-1z" fill="#fdba74"/><path d="M28 6c-4-2-8-2-12 1v21c4-3 8-3 12-1z" fill="#fcd34d"/></symbol><symbol id="i-gear" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><circle cx="16" cy="16" r="11" fill="none" stroke-width="5" stroke-dasharray="4.300 4.300"/><circle cx="16" cy="16" r="8" fill="#d1d5db"/><circle cx="16" cy="16" r="3" fill="#fff"/></symbol><symbol id="i-folder" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M3 8a2 2 0 0 1 2-2h7l3 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#fcd34d"/></symbol><symbol id="i-play" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M9 5l18 11L9 27z" fill="currentColor" stroke="currentColor" stroke-width="3"/></symbol><symbol id="i-back" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M20 5L8 16l12 11" fill="none" stroke="currentColor" stroke-width="4"/></symbol><symbol id="i-chev" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M6 11l10 10 10-10" fill="none" stroke="currentColor" stroke-width="4"/></symbol><symbol id="i-keyboard" viewBox="0 0 32 32" stroke="#1f2937" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect x="2" y="7" width="28" height="18" rx="3" fill="#e5e7eb"/><path d="M7 13h2M12 13h2M17 13h2M22 13h2M7 17h2M12 17h2M17 17h2M22 17h2M10 21h12" fill="none" stroke-width="2"/></symbol><symbol id="i-car" viewBox="0 0 48 24" stroke="#1f2937" stroke-width="2" stroke-linejoin="round"><path d="M3 18v-3.500c0-1 .7-1.800 1.700-2L11 11l5-5h13l6 5 7 1.500c1 .2 1.500 1 1.500 2V18z" fill="currentColor"/><path d="M17.500 8.500h10l3.500 3H14z" fill="#bae6fd" stroke-width="1.500"/><circle cx="13" cy="19" r="4" fill="#374151"/><circle cx="13" cy="19" r="1.500" fill="#d1d5db" stroke="none"/><circle cx="36" cy="19" r="4" fill="#374151"/><circle cx="36" cy="19" r="1.500" fill="#d1d5db" stroke="none"/></symbol><symbol id="i-racer" viewBox="0 0 48 24" stroke="#1f2937" stroke-width="2" stroke-linejoin="round"><path d="M3 18v-3.500c0-1 .7-1.800 1.700-2L11 11l5-5h13l6 5 7 1.500c1 .2 1.500 1 1.500 2V18z" fill="currentColor"/><path d="M17.500 8.500h10l3.500 3H14z" fill="#bae6fd" stroke-width="1.500"/><circle cx="13" cy="19" r="4" fill="#374151"/><circle cx="13" cy="19" r="1.500" fill="#d1d5db" stroke="none"/><circle cx="36" cy="19" r="4" fill="#374151"/><circle cx="36" cy="19" r="1.500" fill="#d1d5db" stroke="none"/><path d="M2 9h7v2.500H2z" fill="#1f2937"/><path d="M18 12.500h17" stroke="#fff" stroke-width="2" fill="none"/></symbol></defs></svg>
+
+  <div id="app" class="flex w-full" v-cloak>
+    
+    <transition name="welcome" @after-leave="enfocarAcceso">
+      <section v-if="mostrandoBienvenida" class="welcome-screen" aria-labelledby="welcome-title">
+        <div class="welcome-orbit" aria-hidden="true"></div>
+        <div class="welcome-content">
+          <span class="welcome-emblem" aria-hidden="true">E<span>✦</span></span>
+          <p class="welcome-eyebrow">TU AVENTURA EMPIEZA AQUÍ</p>
+          <h1 id="welcome-title" class="welcome-title">Edu<span>Quest</span></h1>
+          <p class="welcome-greeting">¡Bienvenido!</p>
+          <p class="welcome-caption">Aprende, juega y supera tus límites.</p>
+          <div class="welcome-progress" aria-hidden="true"><span></span></div>
+          <button class="welcome-skip" type="button" @click="terminarBienvenida">Continuar <span aria-hidden="true">→</span></button>
+        </div>
+        <span class="welcome-footnote">UN NUEVO RETO. UNA NUEVA CONQUISTA.</span>
+      </section>
+    </transition>
+
+    <!-- VISTA DE LOGIN -->
+    <section v-if="!usuarioLogueado && !mostrandoBienvenida" class="access-screen" aria-labelledby="access-title">
+      <div class="access-story">
+        <a class="access-brand" href="/" aria-label="EduQuest, inicio"><span class="access-logo">E</span> EduQuest<span class="brand-dot">.</span></a>
+        <div class="story-content">
+          <p class="access-eyebrow"><span></span> MODO APRENDIZAJE / ACTIVADO</p>
+          <h2>APRENDE.<br>JUEGA.<br><em>SUBE DE NIVEL.</em></h2>
+          <p class="story-description">Tu próxima misión: dominar el código. Supera desafíos, desbloquea logros y lleva tus habilidades al siguiente nivel.</p>
+          <div class="quest-art" aria-hidden="true">
+            <div class="quest-grid"></div>
+            <div class="quest-hud"><span>CAMPAÑA / CÓDIGO</span><span>SELECT MISSION ↓</span></div>
+            <svg class="quest-path" viewBox="0 0 540 280" fill="none"><path d="M45 230C45 115 200 260 250 140S410 185 480 45" stroke="#779449" stroke-width="2" stroke-dasharray="7 9"/></svg>
+            <div class="quest-tile tile-code"><b class="mission-symbol">&lt;/&gt;</b><span>01 / EXPLORA</span></div>
+            <div class="quest-tile tile-game"><svg viewBox="0 0 100 70" fill="none"><path d="M27 15h46c11 0 22 35 17 42-5 8-16-2-22-9H32c-6 7-17 17-22 9-5-7 6-42 17-42Z" stroke="currentColor" stroke-width="4"/><path d="M28 26v18m-9-9h18" stroke="currentColor" stroke-width="4"/><circle cx="66" cy="29" r="4" fill="currentColor"/><circle cx="77" cy="40" r="4" fill="currentColor"/></svg><span>02 / JUEGA</span></div>
+            <div class="quest-tile tile-win"><svg viewBox="0 0 70 70" fill="none"><path d="M22 10h26v20c0 17-26 17-26 0Zm0 4H10v10c0 8 6 12 14 12m24-22h12v10c0 8-6 12-14 12M35 43v14m-12 4h24" stroke="currentColor" stroke-width="4"/><path d="m35 17 3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1Z" fill="currentColor"/></svg><span>03 / SUPÉRATE</span></div>
+            <span class="art-spark spark-one">✦</span><span class="art-spark spark-two">+</span>
+            <div class="quest-caption"><span class="caption-line"></span> EL SIGUIENTE LOGRO ES TUYO.</div>
+          </div>
+        </div>
+        <footer class="story-footer"><span>QUIZZES / MINIJUEGOS / LOGROS</span><span>PLAYER ONE: TÚ</span></footer>
+      </div>
+      <div class="access-form-panel">
+        <span class="access-chapter">EDUQUEST // PLAYER ACCESS <span>↗</span></span>
+        <div class="access-form-content">
+          <div class="access-intro-icon" aria-hidden="true"><ic n="spark"></ic></div>
+          <p class="access-eyebrow">[ PREPARANDO NUEVA PARTIDA ]</p>
+          <h1 id="access-title">{{ authMode === 'login' ? 'Entra al juego.' : 'Crea tu cuenta.' }}</h1>
+          <p class="access-description">{{ authMode === 'login' ? 'Inicia sesión para continuar tu partida.' : 'Regístrate y configura tu perfil. Tu progreso queda guardado en tu cuenta.' }}</p>
+          <div class="auth-tabs" role="tablist"><button type="button" role="tab" :aria-selected="authMode === 'login'" :class="{ on: authMode === 'login' }" @click="cambiarModo('login')">Iniciar sesión</button><button type="button" role="tab" :aria-selected="authMode === 'registro'" :class="{ on: authMode === 'registro' }" @click="cambiarModo('registro')">Crear cuenta</button></div>
+          <form @submit.prevent="enviarAuth" class="access-form">
+            <div class="access-field">
+              <label for="auth-email">Correo electrónico</label>
+              <input id="auth-email" type="email" autocomplete="email" v-model.trim="authEmail" required placeholder="correo@ejemplo.com">
+              <p v-if="emailHint.texto" class="email-hint" :class="emailHint.tipo" aria-live="polite">{{ emailHint.texto }}</p>
+            </div>
+            <div class="access-field">
+              <label for="auth-pass">Contraseña</label>
+              <input id="auth-pass" type="password" :autocomplete="authMode === 'login' ? 'current-password' : 'new-password'" v-model="authPass" required minlength="6" placeholder="Mínimo 6 caracteres">
+            </div>
+            <div class="access-field" v-if="authMode === 'registro'">
+              <label for="login-name">Nombre de jugador</label>
+              <input id="login-name" type="text" autocomplete="given-name" v-model="inputNombre" required pattern=".*\S.*" maxlength="60" placeholder="Escribe tu nombre de jugador">
+            </div>
+            <template v-if="authMode === 'registro'"><div class="access-field">
+              <label for="login-avatar">Tu avatar <span>Opcional</span></label>
+              <div class="avatar-upload">
+                <div class="avatar-preview"><img v-if="tempAvatar" :src="tempAvatar" alt="Vista previa de tu foto"><ic v-else n="user"></ic></div>
+                <div class="avatar-upload-copy"><strong>Personaliza a tu jugador</strong><span>Elige una imagen para tu perfil</span>
+                  <label class="upload-action" for="login-avatar"><ic n="camera"></ic> Elegir foto</label>
+                  <input id="login-avatar" class="avatar-file" type="file" accept="image/*" @change="cargarImagen">
+                </div>
+              </div>
+            </div>
+            <div class="avatar-recommendations">
+                <div class="avatar-gallery-heading"><span>AVATARES RECOMENDADOS</span><button type="button" @click="avatarAleatorio(false)"><ic n="dice"></ic> Aleatorio</button></div>
+                <div class="avatar-gallery" role="group" aria-label="Avatares recomendados">
+                  <button v-for="avatar in avatares" :key="avatar.src" type="button" @click="tempAvatar = avatar.src" :aria-label="'Elegir avatar ' + avatar.nombre" :aria-pressed="tempAvatar === avatar.src" :class="{ chosen: tempAvatar === avatar.src }"><img :src="avatar.src" :alt="avatar.nombre"><span v-if="tempAvatar === avatar.src" aria-hidden="true">✓</span></button>
+                </div>
+              </div>
+            </template>
+            <p v-if="authError" class="auth-msg err" role="alert">{{ authError }}</p>
+            <p v-if="authInfo" class="auth-msg ok" role="status">{{ authInfo }}</p>
+            <button class="access-submit" type="submit" :disabled="authBusy">{{ authBusy ? 'ESPERA…' : (authMode === 'login' ? 'INICIAR SESIÓN' : 'CREAR CUENTA') }} <span aria-hidden="true">→</span></button>
+            <button v-if="authMode === 'login'" type="button" class="auth-link" @click="olvidoPass">¿Olvidaste tu contraseña?</button>
+            <p class="access-form-note"><ic n="pad"></ic> Tu ritmo. Tus retos. Tu próxima victoria.</p>
+          </form>
+        </div>
+        <footer class="access-footer">APRENDE. JUEGA. REPITE.<span>EduQuest © {{ new Date().getFullYear() }}</span></footer>
+      </div>
+    </section>
+
+    <!-- DASHBOARD (JUEGO) -->
+    <template v-if="usuarioLogueado && !mostrandoBienvenida">
+      
+
+      <!-- CONTENIDO -->
+      <main class="gamer-app flex-1 w-full flex flex-col min-h-screen">
+        <transition name="trofeo">
+          <div v-if="trofeoActual" class="trofeo-toast" :class="trofeoActual.tier" role="status" aria-live="polite" @click="cerrarTrofeo">
+            <div class="trofeo-img"><ic :n="trofeoActual.icon"></ic><img :src="'/trophies/' + trofeoActual.id + '.png'" alt="" @error="trofeoImgError($event, trofeoActual.id)"></div>
+            <div class="trofeo-txt"><small>{{ trofeoActual.tier === 'platino' ? '¡TROFEO DE PLATINO!' : 'TROFEO DESBLOQUEADO' }}</small><strong>{{ trofeoActual.name }}</strong><span>{{ trofeoActual.desc }}</span></div>
+          </div>
+        </transition>
+        <div v-if="trofeoGrupoAbierto" class="trofeo-modal" @click.self="cerrarTrofeosJuego">
+          <div class="trofeo-panel" ref="trofeoPanel" role="dialog" aria-modal="true" aria-labelledby="trofeo-panel-titulo" tabindex="-1">
+            <header>
+              <h2 id="trofeo-panel-titulo">Trofeos: {{ trofeoGrupoAbierto.nombre }}</h2>
+              <button type="button" @click="cerrarTrofeosJuego" aria-label="Cerrar">✕</button>
+            </header>
+            <div class="trofeo-panel-sub">{{ trofeoGrupoAbierto.hechos }} de {{ trofeoGrupoAbierto.items.length }} trofeos desbloqueados
+              <progress :value="trofeoGrupoAbierto.hechos" :max="trofeoGrupoAbierto.items.length"></progress></div>
+            <div class="trofeo-lista">
+              <article v-for="t in trofeoGrupoAbierto.items" :key="t.id" class="trofeo-card" :class="[t.tier, { on: tieneTrofeo(t.id) }]">
+                <div class="trofeo-img"><ic :n="t.icon"></ic><img :src="'/trophies/' + t.id + '.png'" alt="" @error="trofeoImgError($event, t.id)"></div>
+                <div style="min-width:0;flex:1">
+                  <span class="trofeo-tag">{{ tierNombre[t.tier] }}</span>
+                  <h4>{{ t.name }}</h4><p>{{ t.desc }}</p>
+                  <progress v-if="!tieneTrofeo(t.id)" :value="trofeoValor(t)" :max="trofeoMeta(t)"></progress>
+                  <small>{{ tieneTrofeo(t.id) ? '✓ Desbloqueado' : trofeoValor(t) + ' / ' + trofeoMeta(t) }}</small>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+        
+        <header class="gamer-header relative z-30 h-20 px-4 sm:px-8 flex items-center justify-between">
+          <div class="flex items-center gap-3 cursor-pointer" @click="ir('dashboard')">
+            <div class="w-10 h-10 bg-gradient-to-br from-orange-400 to-pink-400 -rotate-6 rounded-xl flex items-center justify-center text-white font-black italic text-lg">E</div>
+            <h2 class="text-xl font-black text-gray-800">{{ titulos[vista] || vista }}</h2>
+          </div>
+          <div class="relative">
+            <button @click="menuAbierto = !menuAbierto" :aria-expanded="menuAbierto" aria-controls="player-menu" aria-label="Abrir menú de jugador" class="flex items-center gap-3 bg-white rounded-2xl pl-2 pr-4 py-2 border border-gray-200 shadow-sm hover:border-brandOrange transition">
+              <img :src="(itemOf(progress?.equipped.avatar)?.img || usuario.avatar)" :class="progress?.equipped.frame" alt="Avatar" class="w-10 h-10 rounded-full object-cover border-2 border-orange-200">
+              <div class="text-left leading-tight hidden sm:block">
+                <p class="font-black text-sm text-gray-800">{{ usuario.nombre }}</p><p v-if="progress?.equipped.title" class="player-title">{{ itemOf(progress.equipped.title)?.name }}</p>
+                <p class="text-[11px] text-gray-400 font-bold">Nivel {{ nivelActual }} · {{ rango }}</p>
+              </div>
+              <span class="text-gray-400 text-xs transition-transform" :class="menuAbierto ? 'rotate-180' : ''"><ic n="chev"></ic></span>
+            </button>
+            <div v-if="menuAbierto" class="fixed inset-0" @click="menuAbierto = false"></div>
+            <transition name="menu">
+              <div id="player-menu" v-if="menuAbierto" @keydown.esc="menuAbierto = false" class="player-menu absolute right-0 mt-2 w-64 bg-white rounded-2xl border border-gray-100 shadow-xl p-2">
+                <a v-for="m in menu" :key="m.v" @click="ir(m.v)" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 cursor-pointer transition" :class="{ 'active': activo(m.v) }">
+                  <ic :n="m.i" class="w-6 h-6"></ic> {{ m.t }}
+                </a>
+                <div class="border-t border-gray-100 my-1"></div>
+                <a @click="cerrarSesion" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl cursor-pointer transition">
+                  <span class="text-lg"><ic n="door"></ic></span> Cerrar Sesión
+                </a>
+              </div>
+            </transition>
+          </div>
+        </header>
+
+        <nav class="gamer-nav" aria-label="Navegación principal">
+          <a href="/" class="gamer-wordmark" @click.prevent="ir('dashboard')">EDU<span>QUEST</span><small>PLAYER HUB</small></a>
+          <div class="gamer-nav-links"><button v-for="m in menu" :key="m.v" type="button" @click="ir(m.v)" :aria-current="activo(m.v) ? 'page' : undefined" :class="{ selected: activo(m.v) }"><navart :n="m.v"></navart>{{ m.t }}</button></div>
+          <span class="gamer-level">LVL {{ nivelActual }} <b>{{ usuario.xp }} XP</b></span>
+        </nav>
+        <div class="reward-status success streak-toast" v-if="rachaAviso" role="status"><ic n="flame"></ic> ¡Completaste tu día de racha! Llevas {{ usuario.racha }} {{ usuario.racha === 1 ? 'día' : 'días' }} seguidos.</div>
+        <div class="reward-status" v-if="rewardError" role="alert">{{ rewardError }} <span>Las acciones pendientes se reintentan sin duplicar premios. Mantén esta página abierta.</span><button @click="retryRewards" :disabled="busy">Reintentar</button></div>
+        <div class="reward-status success" v-else-if="rewardNotice" role="status">{{ rewardNotice }}</div>
+        <div v-if="progress && vista === 'dashboard'" class="hub-rewards"><div><span class="reward-eyebrow">PASE DE AVENTURA</span><strong><img src="/coin.svg" class="coin coin-md" alt="">{{ progress.gold }} de oro · {{ progress.chests }} cofres por abrir</strong><p>Más partidas, más XP, más recompensas.</p></div><button @click="ir('recompensas')">Ver mi camino <ic n="star"></ic></button><button @click="ir('tienda')">Abrir tienda <ic n="gem"></ic></button></div>
+        <!-- DASHBOARD -->
+        <div v-if="vista === 'dashboard'" class="flex-1 px-8 pb-8 flex flex-col xl:flex-row gap-6">
+          <div class="flex-1 flex flex-col gap-6">
+            <div class="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-r from-orange-300 via-pink-300 to-purple-300 border-4 border-white card-shadow">
+              <span class="wiggle absolute right-3 top-1 text-7xl"><ic n="rocket"></ic></span>
+              <h1 class="text-3xl sm:text-4xl font-black text-gray-800 pr-20">¡Hola, {{ usuario.nombre }}! <ic n="spark"></ic></h1>
+              <p class="font-bold text-gray-700 mt-1">¿Listo para ganar XP hoy? <ic n="flame"></ic> Llevas {{ usuario.racha }} días de racha.</p>
+              <div class="mt-4 max-w-sm">
+                <div class="flex justify-between text-xs font-black text-gray-700 mb-1"><span>Nivel {{ nivelActual }}</span><span>{{ usuario.xp % 100 }}/100 XP</span></div>
+                <div class="h-4 bg-white/70 rounded-full overflow-hidden border-2 border-white">
+                  <div class="h-full bg-gradient-to-r from-yellow-300 to-orange-400 rounded-full transition-all" :style="{ width: (usuario.xp % 100) + '%' }"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div class="bg-yellow-100 rounded-3xl p-5 card-shadow relative overflow-hidden">
+                <p class="text-sm font-black text-yellow-800 mb-1">XP TOTAL</p>
+                <h3 class="text-3xl font-black text-gray-800">{{ usuario.xp }}</h3>
+                <p class="text-xs font-bold text-yellow-700 mt-1">Puntos actuales</p>
+                <span class="absolute -right-4 -bottom-4 text-7xl opacity-20"><ic n="star"></ic></span>
+              </div>
+              <div class="bg-blue-50 rounded-3xl p-5 card-shadow relative overflow-hidden border border-blue-100">
+                <p class="text-sm font-black text-blue-800 mb-1">NIVEL</p>
+                <h3 class="text-3xl font-black text-gray-800">{{ nivelActual }}</h3>
+                <p class="text-xs font-bold text-blue-600 mt-1">Rango: {{ rango }}</p>
+                <span class="absolute -right-4 -bottom-4 text-7xl opacity-20"><ic n="gem"></ic></span>
+              </div>
+              <div class="bg-red-50 rounded-3xl p-5 card-shadow relative overflow-hidden border border-red-100">
+                <p class="text-sm font-black text-red-800 mb-1">RACHA</p>
+                <h3 class="text-3xl font-black text-gray-800">{{ usuario.racha }} <span class="text-lg">días</span></h3>
+                <p class="text-xs font-bold text-red-600 mt-1">¡No la pierdas!</p>
+                <span class="absolute -right-4 -bottom-4 text-7xl opacity-20"><ic n="flame"></ic></span>
+              </div>
+              <div class="bg-orange-50 rounded-3xl p-5 card-shadow relative overflow-hidden border border-orange-100">
+                <p class="text-sm font-black text-orange-800 mb-1">RANKING</p>
+                <h3 class="text-3xl font-black text-gray-800">#{{ usuario.ranking }}</h3>
+                <p class="text-xs font-bold text-orange-600 mt-1">Global</p>
+                <span class="absolute -right-4 -bottom-4 text-7xl opacity-20"><ic n="badge"></ic></span>
+              </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-sky-300 to-indigo-300 rounded-3xl p-6 card-shadow border-4 border-white flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm font-black text-indigo-900 mb-1"><ic n="dice"></ic> Reto del día</p>
+                <h3 class="text-2xl font-black text-gray-800 mb-3">¡Elige tu juego y gana XP!</h3>
+                <div class="flex flex-wrap gap-2">
+                  <button @click="iniciarJuego()" class="bg-white text-gray-800 font-black py-2 px-4 rounded-xl border-2 border-gray-800 hover:-translate-y-0.5 transition text-sm"><ic n="quiz"></ic> Quiz</button>
+                  <button @click="iniciarBugs()" class="bg-white text-gray-800 font-black py-2 px-4 rounded-xl border-2 border-gray-800 hover:-translate-y-0.5 transition text-sm"><ic n="bug"></ic> Bugs</button>
+                  <button @click="iniciarTiro()" class="bg-white text-gray-800 font-black py-2 px-4 rounded-xl border-2 border-gray-800 hover:-translate-y-0.5 transition text-sm"><ic n="target"></ic> Tiro al blanco</button>
+                  <button @click="iniciarTeclas()" class="bg-white text-gray-800 font-black py-2 px-4 rounded-xl border-2 border-gray-800 hover:-translate-y-0.5 transition text-sm"><ic n="keyboard"></ic> Teclas</button>
+                  <button @click="iniciarCarrera()" class="bg-white text-gray-800 font-black py-2 px-4 rounded-xl border-2 border-gray-800 hover:-translate-y-0.5 transition text-sm"><ic n="racer"></ic> Carrera</button>
+                  <button @click="iniciarBaloncesto()" class="bg-white text-gray-800 font-black py-2 px-4 rounded-xl border-2 border-gray-800 hover:-translate-y-0.5 transition text-sm"><ic n="ball"></ic> Baloncesto</button>
+                </div>
+              </div>
+              <div class="hidden sm:block text-7xl wiggle"><ic n="pad"></ic></div>
+            </div>
+          </div>
+
+          <div class="w-full xl:w-80 flex flex-col gap-6">
+            <div class="bg-white rounded-3xl p-6 card-shadow">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-black text-gray-800">Actividad Mensual</h3>
+                <span class="text-sm font-bold text-brandOrange bg-orange-50 px-2 py-1 rounded-lg capitalize">{{ mesNombre }}</span>
+              </div>
+              <div class="grid grid-cols-7 gap-1 text-center mb-2">
+                <span class="text-[10px] font-black text-gray-400">L</span><span class="text-[10px] font-black text-gray-400">M</span>
+                <span class="text-[10px] font-black text-gray-400">M</span><span class="text-[10px] font-black text-gray-400">J</span>
+                <span class="text-[10px] font-black text-gray-400">V</span><span class="text-[10px] font-black text-gray-400">S</span>
+                <span class="text-[10px] font-black text-gray-400">D</span>
+              </div>
+              <div class="grid grid-cols-7 gap-1 place-items-center">
+                <template v-for="c in calendario" :key="c.id"><div v-if="c.vacio" class="cal-empty"></div><div v-else class="cal-day transition" :class="{ 'cal-present': c.activo, 'cal-today': c.hoy, 'cal-absent': !c.activo }" :title="c.activo ? 'Día de racha completado' : ''">{{ c.d }}</div></template>
+              </div>
+              <p class="streak-note" :class="{ done: hechoHoy }"><ic n="flame"></ic>{{ hechoHoy ? '¡Completaste tu día de racha! Llevas ' + usuario.racha + (usuario.racha === 1 ? ' día.' : ' días.') : 'Completa una lección y gana XP para sumar tu día.' }}</p>
+              <span class="cal-month-count">{{ diasActivosMes }} días activos este mes</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MIS QUIZZES -->
+        <div v-if="vista === 'quizzes' && !jugando" class="flex-1 px-8 pb-8">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="bg-white rounded-3xl p-6 card-shadow border border-gray-100 cursor-pointer hover:border-brandOrange transition" @click="iniciarJuego()">
+              <img class="game-art" src="/games/quiz.svg" alt="Ilustración de Programación Básica" loading="lazy">
+              <h3 class="text-xl font-black text-gray-800 mb-2">Programación Básica</h3>
+              <p class="text-sm text-gray-500 mb-4">HTML, CSS y JavaScript.</p>
+              <div class="flex items-center gap-2 text-xs font-bold text-brandOrange">
+                <ic n="play"></ic> Comenzar Quiz
+              </div>
+              <button type="button" class="trofeo-strip" :class="{ completo: resumenTrofeos('quiz').hechos === resumenTrofeos('quiz').total }" @click.stop="abrirTrofeos('quiz')" aria-label="Ver trofeos de este juego">
+                <span class="trofeo-strip-top"><ic n="medal"></ic> Trofeos <em>· ver todos</em><b>{{ resumenTrofeos('quiz').hechos }}/{{ resumenTrofeos('quiz').total }}</b></span>
+                <progress :value="resumenTrofeos('quiz').hechos" :max="resumenTrofeos('quiz').total"></progress>
+              </button>
+            </div>
+            <div class="bg-white rounded-3xl p-6 card-shadow border border-gray-100 cursor-pointer hover:border-brandOrange transition" @click="iniciarBugs()">
+              <img class="game-art" src="/games/bugs.svg" alt="Ilustración de Escáner de Bugs" loading="lazy">
+              <h3 class="text-xl font-black text-gray-800 mb-2">Escáner de Bugs</h3>
+              <p class="text-sm text-gray-500 mb-4">Escanea el código y toca la línea con el error.</p>
+              <div class="flex items-center gap-2 text-xs font-bold text-brandOrange"><ic n="play"></ic> Mini juego</div>
+              <button type="button" class="trofeo-strip" :class="{ completo: resumenTrofeos('bugs').hechos === resumenTrofeos('bugs').total }" @click.stop="abrirTrofeos('bugs')" aria-label="Ver trofeos de este juego">
+                <span class="trofeo-strip-top"><ic n="medal"></ic> Trofeos <em>· ver todos</em><b>{{ resumenTrofeos('bugs').hechos }}/{{ resumenTrofeos('bugs').total }}</b></span>
+                <progress :value="resumenTrofeos('bugs').hechos" :max="resumenTrofeos('bugs').total"></progress>
+              </button>
+            </div>
+            <div class="bg-white rounded-3xl p-6 card-shadow border border-gray-100 cursor-pointer hover:border-brandOrange transition" @click="iniciarCarrera()">
+              <img class="game-art" src="/games/carrera.svg" alt="Ilustración de Carrera de Código" loading="lazy">
+              <h3 class="text-xl font-black text-gray-800 mb-2">Carrera de Código</h3>
+              <p class="text-sm text-gray-500 mb-4">Acierta para acelerar. Si fallas, pierdes velocidad.</p>
+              <div class="flex items-center gap-2 text-xs font-bold text-brandOrange"><ic n="play"></ic> Mini juego</div>
+              <button type="button" class="trofeo-strip" :class="{ completo: resumenTrofeos('carrera').hechos === resumenTrofeos('carrera').total }" @click.stop="abrirTrofeos('carrera')" aria-label="Ver trofeos de este juego">
+                <span class="trofeo-strip-top"><ic n="medal"></ic> Trofeos <em>· ver todos</em><b>{{ resumenTrofeos('carrera').hechos }}/{{ resumenTrofeos('carrera').total }}</b></span>
+                <progress :value="resumenTrofeos('carrera').hechos" :max="resumenTrofeos('carrera').total"></progress>
+              </button>
+            </div>
+            <div class="bg-white rounded-3xl p-6 card-shadow border border-gray-100 cursor-pointer hover:border-brandOrange transition" @click="iniciarTeclas()">
+              <img class="game-art" src="/games/teclas.svg" alt="Ilustración de Carrera de Teclas" loading="lazy">
+              <h3 class="text-xl font-black text-gray-800 mb-2">Carrera de Teclas</h3>
+              <p class="text-sm text-gray-500 mb-4">Escribe código sin fallar: mientras más letras seguidas, más rápido va tu carro.</p>
+              <div class="flex items-center gap-2 text-xs font-bold text-brandOrange"><ic n="play"></ic> Mini juego</div>
+              <button type="button" class="trofeo-strip" :class="{ completo: resumenTrofeos('teclas').hechos === resumenTrofeos('teclas').total }" @click.stop="abrirTrofeos('teclas')" aria-label="Ver trofeos de este juego">
+                <span class="trofeo-strip-top"><ic n="medal"></ic> Trofeos <em>· ver todos</em><b>{{ resumenTrofeos('teclas').hechos }}/{{ resumenTrofeos('teclas').total }}</b></span>
+                <progress :value="resumenTrofeos('teclas').hechos" :max="resumenTrofeos('teclas').total"></progress>
+              </button>
+            </div>
+            <div class="bg-white rounded-3xl p-6 card-shadow border border-gray-100 cursor-pointer hover:border-brandOrange transition" @click="iniciarTiro()">
+              <img class="game-art" src="/games/tiro.svg" alt="Ilustración de Tiro al Blanco" loading="lazy">
+              <h3 class="text-xl font-black text-gray-800 mb-2">Tiro al Blanco</h3>
+              <p class="text-sm text-gray-500 mb-4">Apunta y dispara al resultado correcto del código.</p>
+              <div class="flex items-center gap-2 text-xs font-bold text-brandOrange"><ic n="play"></ic> Mini juego</div>
+              <button type="button" class="trofeo-strip" :class="{ completo: resumenTrofeos('tiro').hechos === resumenTrofeos('tiro').total }" @click.stop="abrirTrofeos('tiro')" aria-label="Ver trofeos de este juego">
+                <span class="trofeo-strip-top"><ic n="medal"></ic> Trofeos <em>· ver todos</em><b>{{ resumenTrofeos('tiro').hechos }}/{{ resumenTrofeos('tiro').total }}</b></span>
+                <progress :value="resumenTrofeos('tiro').hechos" :max="resumenTrofeos('tiro').total"></progress>
+              </button>
+            </div>
+            <div class="bg-white rounded-3xl p-6 card-shadow border border-gray-100 cursor-pointer hover:border-brandOrange transition" @click="iniciarBaloncesto()">
+              <img class="game-art" src="/games/baloncesto.svg" alt="Ilustración de Baloncesto de Código" loading="lazy">
+              <h3 class="text-xl font-black text-gray-800 mb-2">Baloncesto de Código</h3>
+              <p class="text-sm text-gray-500 mb-4">Completa el código entre el balón y el aro. ¡Acierta y encesta!</p>
+              <div class="flex items-center gap-2 text-xs font-bold text-brandOrange"><ic n="play"></ic> Mini juego</div>
+              <button type="button" class="trofeo-strip" :class="{ completo: resumenTrofeos('baloncesto').hechos === resumenTrofeos('baloncesto').total }" @click.stop="abrirTrofeos('baloncesto')" aria-label="Ver trofeos de este juego">
+                <span class="trofeo-strip-top"><ic n="medal"></ic> Trofeos <em>· ver todos</em><b>{{ resumenTrofeos('baloncesto').hechos }}/{{ resumenTrofeos('baloncesto').total }}</b></span>
+                <progress :value="resumenTrofeos('baloncesto').hechos" :max="resumenTrofeos('baloncesto').total"></progress>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- JUEGO ACTIVO -->
+        <div v-if="jugando" class="flex-1 px-8 pb-8 flex justify-center mt-4">
+          <div class="w-full max-w-3xl">
+            <button @click="jugando = false; vista = 'quizzes'" class="text-sm font-bold text-gray-500 hover:text-brandOrange mb-4 flex items-center gap-1">
+              <ic n="back"></ic> Salir del Quiz
+            </button>
+
+            <div class="bg-white rounded-3xl p-8 card-shadow border border-gray-100">
+              <div class="flex justify-between items-center mb-6">
+                <span class="bg-blue-50 text-blue-600 font-bold px-3 py-1 rounded-full text-xs">Pregunta {{ indiceActual + 1 }} de {{ preguntasActuales.length }}</span>
+                <span class="font-black text-brandOrange">{{ puntosActuales }} XP</span>
+              </div>
+
+              <h2 class="text-2xl font-black text-gray-800 mb-8">{{ preguntaActual.pregunta }}</h2>
+
+              <div class="space-y-3">
+                <button v-for="(opcion, index) in preguntaActual.opciones" :key="index"
+                  @click="seleccionarRespuesta(index)"
+                  :disabled="respuestaSeleccionada !== null"
+                  class="w-full text-left p-4 rounded-xl border-2 font-bold transition-all duration-200 flex items-center gap-4"
+                  :class="[
+                    respuestaSeleccionada === null ? 'border-gray-200 hover:border-brandOrange hover:bg-orange-50 text-gray-700' : '',
+                    respuestaSeleccionada !== null && index === preguntaActual.correcta ? 'border-green-500 bg-green-50 text-green-700' : '',
+                    respuestaSeleccionada !== null && index === respuestaSeleccionada && index !== preguntaActual.correcta ? 'border-red-500 bg-red-50 text-red-700' : '',
+                    respuestaSeleccionada !== null && index !== preguntaActual.correcta && index !== respuestaSeleccionada ? 'border-gray-200 opacity-50 text-gray-400' : ''
+                  ]">
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black shrink-0"
+                    :class="respuestaSeleccionada === null ? 'bg-gray-100 text-gray-500' : (index === preguntaActual.correcta ? 'bg-green-500 text-white' : (index === respuestaSeleccionada ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-400'))">
+                    {{ String.fromCharCode(65 + index) }}
+                  </div>
+                  {{ opcion }}
+                </button>
+              </div>
+
+              <div v-if="respuestaSeleccionada !== null" class="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <p class="text-sm font-bold" :class="esCorrecta ? 'text-green-500' : 'text-red-500'">
+                  {{ esCorrecta ? '¡Excelente! Has ganado 10 XP.' : 'Incorrecto. Era: ' + preguntaActual.opciones[preguntaActual.correcta] }}
+                </p>
+                <button @click="siguientePregunta" class="bg-brandOrange text-white font-black py-2 px-6 rounded-xl shadow hover:bg-orange-600 transition w-full sm:w-auto">
+                  {{ indiceActual === preguntasActuales.length - 1 ? 'Ver Resultados' : 'Siguiente' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MINI JUEGO: ESCÁNER DE BUGS -->
+        <div v-if="vista === 'bugs'" class="flex-1 px-8 pb-8 flex justify-center mt-4">
+          <div class="w-full max-w-3xl">
+            <button @click="salirMini" class="text-sm font-bold text-gray-500 hover:text-brandOrange mb-4"><ic n="back"></ic> Salir</button>
+            <div class="bg-white rounded-3xl p-8 card-shadow border border-gray-100">
+              <div class="flex justify-between items-center mb-5">
+                <span class="bg-blue-50 text-blue-600 font-bold px-3 py-1 rounded-full text-xs">Código {{ Math.min(bug.n + 1, bug.lista.length) }} de {{ bug.lista.length }}</span>
+                <span class="font-bold text-sm"><span :key="'v' + bug.vidas" class="corazones inline-flex gap-0.5 align-middle"><ic v-for="n in 3" :key="n" :n="n <= bug.vidas ? 'heart' : 'heart-off'" class="w-5 h-5"></ic></span> <span class="ml-3 font-black text-brandOrange">{{ bug.puntos }} XP</span></span>
+              </div>
+              <template v-if="!bug.fin">
+                <h2 class="text-xl font-black text-gray-800 mb-4">Escanea el código y toca la línea con el error</h2>
+                <div :key="bug.n" class="scan-box relative bg-gray-900 rounded-2xl p-3 font-mono text-sm overflow-x-auto">
+                  <span v-if="bug.elegida !== null && bug.elegida === bugActual.bug" class="xp-float">+15 XP</span>
+                  <button v-for="(l, i) in bugActual.lineas" :key="bug.n + '-' + i" @click="elegirLinea(i)" :disabled="bug.elegida !== null"
+                    class="linea-in block w-full text-left px-3 py-2 rounded-lg whitespace-pre transition" :style="{ animationDelay: i * 70 + 'ms' }" :class="lineaClase(i)">
+                    <span class="text-gray-500 mr-3 select-none">{{ i + 1 }}</span>{{ l }}</button>
+                </div>
+                <div v-if="bug.elegida !== null" class="mt-5 flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <p class="text-sm font-bold" :class="bug.elegida === bugActual.bug ? 'text-green-500' : 'text-red-500'">
+                    {{ bug.elegida === bugActual.bug ? '¡Bug atrapado! +15 XP. ' : 'Ahí no era. ' }}{{ bugActual.nota }}</p>
+                  <button @click="siguienteBug" class="bg-brandOrange text-white font-black py-2 px-6 rounded-xl shadow hover:bg-orange-600 transition w-full sm:w-auto">
+                    {{ bug.vidas === 0 || bug.n === bug.lista.length - 1 ? 'Terminar' : 'Siguiente' }}</button>
+                </div>
+              </template>
+              <div v-else class="text-center py-4">
+                <div class="text-6xl mb-3"><ic n="bug"></ic></div>
+                <h2 class="text-2xl font-black text-gray-800 mb-1">{{ bug.encontrados }} bugs atrapados</h2>
+                <p class="text-gray-500 font-semibold mb-6">Ganaste +{{ bug.puntos }} XP.</p>
+                <button @click="iniciarBugs" class="bg-brandOrange text-white font-black py-2 px-6 rounded-xl shadow hover:bg-orange-600 transition mr-2">Jugar de nuevo</button>
+                <button @click="salirMini" class="bg-gray-800 text-white font-black py-2 px-6 rounded-xl shadow hover:bg-gray-900 transition">Salir</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MINI JUEGO: TIRO AL BLANCO -->
+        <div v-if="vista === 'tiro'" class="flex-1 px-8 pb-8 flex justify-center mt-4">
+          <div class="w-full max-w-3xl">
+            <button @click="salirMini" class="text-sm font-bold text-gray-500 hover:text-brandOrange mb-4"><ic n="back"></ic> Salir</button>
+            <div class="bg-white rounded-3xl p-8 card-shadow border border-gray-100">
+              <div class="flex justify-between items-center mb-5">
+                <span class="bg-blue-50 text-blue-600 font-bold px-3 py-1 rounded-full text-xs">Ronda {{ Math.min(tiro.n + 1, tiro.lista.length) }} de {{ tiro.lista.length }}</span>
+                <span class="font-bold text-sm"><ic n="clock"></ic> {{ tiro.tiempo }}s <span :key="'v' + tiro.vidas" class="ml-3 corazones inline-flex gap-0.5 align-middle"><ic v-for="n in 3" :key="n" :n="n <= tiro.vidas ? 'heart' : 'heart-off'" class="w-5 h-5"></ic></span> <span class="ml-3 font-black text-brandOrange">{{ tiro.puntos }} XP</span></span>
+              </div>
+              <template v-if="!tiro.fin">
+                <div class="h-2 bg-gray-100 rounded-full overflow-hidden mb-3">
+                  <div class="h-full bg-gradient-to-r from-red-500 via-orange-400 to-green-400 transition-all duration-1000 ease-linear" :style="{ width: tiro.tiempo * 10 + '%' }"></div>
+                </div>
+                <p class="text-sm text-gray-500 font-semibold mb-2">Dispara al resultado correcto:</p>
+                <div class="bg-gray-900 text-orange-300 font-mono font-bold rounded-xl p-4 text-lg overflow-x-auto">{{ tiroActual.q }}</div>
+                <div class="arena relative h-72 mt-5 rounded-2xl overflow-hidden bg-gradient-to-b from-sky-100 to-orange-50 border border-orange-100">
+                  <span v-if="tiro.ultimo" :key="tiro.n" class="xp-float">+{{ tiro.ultimo }} XP</span>
+                  <button v-for="(b, i) in tiro.blancos" :key="tiro.n + '-' + i" @click="disparar(i)" class="blanco absolute"
+                    :class="b.estado" :style="{ left: b.x + '%', top: b.y + '%', '--dur': b.dur + 's' }"><span>{{ b.t }}</span></button>
+                </div>
+              </template>
+              <div v-else class="text-center py-4">
+                <div class="text-6xl mb-3"><ic n="target"></ic></div>
+                <h2 class="text-2xl font-black text-gray-800 mb-1">{{ tiro.aciertos }} blancos acertados</h2>
+                <p class="text-gray-500 font-semibold mb-6">Ganaste +{{ tiro.puntos }} XP.</p>
+                <button @click="iniciarTiro" class="bg-brandOrange text-white font-black py-2 px-6 rounded-xl shadow hover:bg-orange-600 transition mr-2">Jugar de nuevo</button>
+                <button @click="salirMini" class="bg-gray-800 text-white font-black py-2 px-6 rounded-xl shadow hover:bg-gray-900 transition">Salir</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MINI JUEGO: CARRERA DE CÓDIGO -->
+        <!-- MINI JUEGO: BALONCESTO -->
+        <div v-if="vista === 'baloncesto'" class="flex-1 px-4 sm:px-8 pb-8 flex justify-center mt-4">
+          <div class="w-full max-w-3xl">
+            <button @click="salirMini" class="text-sm font-bold text-gray-500 hover:text-brandOrange mb-4"><ic n="back"></ic> Salir</button>
+            <div class="bg-white rounded-3xl p-5 sm:p-8 card-shadow border border-gray-100">
+              <div class="flex justify-between items-center mb-4">
+                <span class="bg-orange-50 text-orange-600 font-bold px-3 py-1 rounded-full text-xs">Tiro {{ Math.min(bb.n + 1, bb.lista.length) }} de {{ bb.lista.length }}</span>
+                <span class="font-bold text-sm"><ic n="ball"></ic> {{ bb.aciertos }} canastas <span class="ml-3 font-black text-brandOrange">{{ bb.puntos }} XP</span></span>
+              </div>
+              <p class="text-sm text-gray-500 font-semibold mb-2">Completa el código para encestar:</p>
+              <div class="bb-code bg-gray-900 text-orange-300 font-mono font-bold rounded-xl p-4 text-base mb-4"><span>{{ bbActual.a }}</span><b class="bb-slot">{{ bb.elegido !== null ? bb.opts[bb.elegido].t : '???' }}</b><span>{{ bbActual.b }}</span></div>
+              <div class="bb-stage" :class="['bb-' + bb.fase, bb.n > 0 ? 'bb-sig' : '']">
+                <span v-if="bb.resultado === 'ok'" :key="'x' + bb.n" class="xp-float">+{{ bb.ultimo }} XP</span>
+                <span v-if="bb.resultado === 'mal'" :key="'m' + bb.n" class="bb-fail">¡Pegó en el aro!</span>
+                <div class="bb-world">
+                  <div class="bb-wall"></div>
+                  <svg class="bb-floor" viewBox="0 0 100 45" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="bbw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a4d22"/><stop offset="1" stop-color="#c68642"/></linearGradient></defs><rect width="100" height="45" fill="url(#bbw)"/><path d="M66 0-40 45M66 0-10 45M66 0 20 45M66 0 50 45M66 0 80 45M66 0 110 45M66 0 140 45" stroke="#0003" stroke-width="1" vector-effect="non-scaling-stroke"/><path d="M60 0H72L90 45H40Z" fill="#c2410c40" stroke="#fff" stroke-width="2" vector-effect="non-scaling-stroke" opacity=".85"/><ellipse cx="66" cy="24" rx="16" ry="5" fill="none" stroke="#fff" stroke-width="2" vector-effect="non-scaling-stroke" opacity=".85"/><path d="M0 .5H100" stroke="#fff" stroke-width="2" vector-effect="non-scaling-stroke" opacity=".7"/></svg>
+                  <div class="bb-pole"></div>
+                  <div class="bb-hoop">
+                    <div class="bb-board"><span>{{ bbActual.b }}</span></div>
+                    <svg class="bb-rim" viewBox="0 0 100 70" aria-hidden="true"><g class="bb-net"><path d="M10 16 30 62M26 22 38 62M42 24 46 62M58 24 54 62M74 22 62 62M90 16 70 62M14 30H86M19 42H81M25 54H75" stroke="#e5e7eb" stroke-width="1.6" fill="none" stroke-linecap="round"/></g><ellipse cx="50" cy="14" rx="42" ry="10" fill="none" stroke="#ef4444" stroke-width="5"/></svg>
+                  </div>
+                  <div class="bb-sh"></div>
+                  <div class="bb-rack"><i></i><i></i></div>
+                  <svg class="bb-char" viewBox="0 0 140 220" aria-hidden="true">
+                    <ellipse cx="70" cy="214" rx="34" ry="5" fill="#000" opacity=".3"/>
+                    <g class="ch-lg"><rect x="48" y="150" width="18" height="56" rx="8" fill="#e8b98f"/><rect x="74" y="150" width="18" height="56" rx="8" fill="#e8b98f"/><rect x="42" y="203" width="26" height="11" rx="5" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/><rect x="72" y="203" width="26" height="11" rx="5" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/></g>
+                    <g class="ch-bd">
+                      <path d="M44 142h52v36H74l-4-14-4 14H44z" fill="#1d4ed8" stroke="#1e3a8a" stroke-width="2" stroke-linejoin="round"/>
+                      <path d="M46 92q24-10 48 0l4 54H42z" fill="#f97316" stroke="#7c2d12" stroke-width="2.5" stroke-linejoin="round"/>
+                      <text x="70" y="128" text-anchor="middle" font-size="34" font-weight="900" fill="#fff" font-family="Arial,sans-serif">7</text>
+                      <rect x="62" y="72" width="16" height="20" fill="#e8b98f"/><circle cx="70" cy="58" r="19" fill="#2b1a10"/><circle cx="51" cy="62" r="4" fill="#e8b98f"/><circle cx="89" cy="62" r="4" fill="#e8b98f"/><path d="M51.5 56q18.5-8 37 0" stroke="#ef4444" stroke-width="5" fill="none"/>
+                      <g class="ch-ua-l"><rect x="39" y="94" width="11" height="36" rx="5.5" fill="#e8b98f"/><g class="ch-fa-l"><rect x="39" y="126" width="11" height="34" rx="5.5" fill="#e8b98f"/><circle cx="44.5" cy="161" r="7" fill="#e8b98f"/></g></g><g class="ch-ua-r"><rect x="90" y="94" width="11" height="36" rx="5.5" fill="#e8b98f"/><g class="ch-fa-r"><rect x="90" y="126" width="11" height="34" rx="5.5" fill="#e8b98f"/><circle cx="95.5" cy="161" r="7" fill="#e8b98f"/></g></g>
+                      <circle cx="44.5" cy="98" r="9" fill="#f97316" stroke="#7c2d12" stroke-width="2"/><circle cx="95.5" cy="98" r="9" fill="#f97316" stroke="#7c2d12" stroke-width="2"/>
+                    </g>
+                  </svg>
+                  <div v-if="bb.fase !== 'fin'" :key="bb.n" class="bb-ball"><span>{{ bbActual.a }}</span></div>
+                </div>
+              </div>
+              <div v-if="!bb.fin" class="grid grid-cols-2 gap-3 mt-4">
+                <button v-for="(o, i) in bb.opts" :key="bb.n + '-' + i" @click="elegirBB(i)" :disabled="bb.bloqueado" class="bb-op" :class="{ ok: bb.elegido !== null && o.ok, mal: bb.elegido === i && !o.ok }">{{ o.t }}</button>
+              </div>
+              <div v-else class="text-center pt-6">
+                <div class="text-6xl mb-3"><ic n="ball"></ic></div>
+                <h2 class="text-2xl font-black text-gray-800 mb-1">{{ bb.aciertos }} de {{ bb.lista.length }} canastas</h2>
+                <p class="text-gray-500 font-semibold mb-6">Ganaste +{{ bb.puntos }} XP.</p>
+                <button @click="iniciarBaloncesto" class="bg-brandOrange text-white font-black py-2 px-6 rounded-xl shadow hover:bg-orange-600 transition mr-2">Jugar de nuevo</button>
+                <button @click="salirMini" class="bg-gray-800 text-white font-black py-2 px-6 rounded-xl shadow hover:bg-gray-900 transition">Salir</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="vista === 'carrera' || vista === 'teclas'" class="flex-1 px-4 sm:px-8 pb-8 flex justify-center mt-4">
+          <div class="w-full max-w-4xl">
+            <button @click="salirMini" class="text-sm font-bold text-gray-500 hover:text-brandOrange mb-4"><ic n="back"></ic> Salir</button>
+            <div class="bg-white rounded-3xl p-5 sm:p-8 card-shadow border border-gray-100">
+              <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
+                <span class="bg-blue-50 text-blue-600 font-bold px-3 py-1 rounded-full text-xs"><ic n="flag"></ic> Vas {{ posActual }}º</span>
+                <div class="flex items-center gap-1" title="Velocidad">
+                  <span class="text-xs font-black text-gray-500 mr-1">Velocidad</span>
+                  <span v-for="n in 6" :key="n" class="w-5 h-3 rounded-sm transition-colors duration-200"
+                    :class="n - 1 <= car.nivel ? ['bg-green-400', 'bg-green-400', 'bg-yellow-400', 'bg-orange-400', 'bg-red-500', 'bg-red-600'][n - 1] : 'bg-gray-200'"></span>
+                </div>
+                <span class="font-black text-sm text-brandOrange">{{ car.aciertos }} aciertos</span>
+              </div>
+
+              <div class="relative rounded-2xl overflow-hidden border-4 border-gray-800 mb-5" :class="{ 'shake-bad': car.error }">
+                <div v-for="(l, k) in [{ e: 'car', c: 'text-sky-500', p: car.bots[0] }, { e: 'car', c: 'text-emerald-500', p: car.bots[1] }, { e: 'racer', c: 'text-orange-500', p: car.yo, yo: true }]" :key="k"
+                  class="carril relative h-16 border-b-2 border-gray-800 last:border-b-0"
+                  :style="{ '--v': l.yo ? (1.2 / (0.6 + car.nivel)).toFixed(2) + 's' : '0.5s' }">
+                  <div class="absolute top-1/2 flex items-center" :style="{ left: l.p + '%', transform: 'translate(-' + l.p + '%, -50%)' }">
+                    <span v-if="l.yo && car.nivel >= 4" class="llama text-2xl"><ic n="flame"></ic></span>
+                    <ic :n="l.e" class="auto w-20 h-10" :class="[l.c, { spin: l.yo && car.error }]"></ic>
+                  </div>
+                  <span v-if="l.yo" class="absolute left-2 top-1 text-[10px] font-black text-white/80">TÚ</span>
+                </div>
+                <div class="meta"></div>
+                <div v-if="car.cuenta > 0 || car.ya" class="absolute inset-0 z-10 flex items-center justify-center bg-black/25">
+                  <span :key="car.cuenta" class="cuenta">{{ car.cuenta > 0 ? car.cuenta : '¡YA!' }}</span>
+                </div>
+              </div>
+
+              <template v-if="!car.fin && vista === 'teclas'">
+                <div class="bg-gray-900 rounded-xl p-4 mb-3 font-mono text-base sm:text-xl leading-relaxed whitespace-pre-wrap break-all">
+                  <span v-for="(ch, i) in teclaChars" :key="i" :class="tcClase(i)">{{ ch }}</span>
+                </div>
+                <input ref="inputTecla" v-model="car.escrito" @input="alEscribir" @paste.prevent @drop.prevent :disabled="car.cuenta > 0"
+                  autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Escribe el código aquí..."
+                  class="w-full bg-yellow-50 border-2 border-gray-800 rounded-xl p-3 font-mono font-bold text-gray-800 focus:outline-none focus:border-brandOrange">
+                <p class="text-xs font-bold text-gray-500 mt-2">Cada 8 letras seguidas sin error subes un nivel de velocidad. Si te equivocas, bajas 2 niveles.</p>
+              </template>
+              <template v-else-if="!car.fin">
+                <div class="bg-gray-900 text-orange-300 font-mono font-bold rounded-xl p-4 text-base sm:text-lg overflow-x-auto mb-4">{{ car.q }}</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button v-for="(o, i) in car.opts" :key="i" @click="responder(i)" :disabled="car.sel !== null"
+                    class="text-left p-3 rounded-xl border-2 font-bold font-mono text-sm transition-all duration-150"
+                    :class="car.sel === null ? 'border-gray-200 hover:border-brandOrange hover:bg-orange-50 text-gray-700' :
+                      (o.ok ? 'border-green-500 bg-green-50 text-green-700' : (i === car.sel ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-200 opacity-40 text-gray-400'))">{{ o.t }}</button>
+                </div>
+              </template>
+              <div v-else class="text-center py-2">
+                <div class="mb-2"><ic n="medal" class="w-16 h-16" :class="['text-yellow-400', 'text-gray-300', 'text-amber-600'][car.pos - 1]"></ic></div>
+                <h2 class="text-2xl font-black text-gray-800 mb-1">¡Llegaste en {{ car.pos }}º lugar!</h2>
+                <p class="text-gray-500 font-semibold mb-5">+{{ car.xp }} XP · {{ car.aciertos }} aciertos</p>
+                <button @click="reiniciarCarrera" class="bg-brandOrange text-white font-black py-2 px-6 rounded-xl shadow hover:bg-orange-600 transition mr-2">Correr otra vez</button>
+                <button @click="salirMini" class="bg-gray-800 text-white font-black py-2 px-6 rounded-xl shadow hover:bg-gray-900 transition">Salir</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RESULTADOS -->
+        <div v-if="vista === 'resultados'" class="flex-1 px-8 pb-8 flex items-center justify-center">
+          <div class="bg-white rounded-3xl p-10 card-shadow border border-gray-100 max-w-lg w-full text-center">
+            <div class="text-6xl mb-4"><ic n="trophy"></ic></div>
+            <h2 class="text-3xl font-black text-gray-800 mb-2">¡Reto Completado!</h2>
+            <div class="grid grid-cols-2 gap-4 my-8">
+              <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                <p class="text-xs text-gray-400 font-bold uppercase mb-1">Aciertos</p>
+                <p class="text-3xl font-black text-green-500">{{ aciertos }} <span class="text-lg text-gray-400">/ {{ preguntasActuales.length }}</span></p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                <p class="text-xs text-gray-400 font-bold uppercase mb-1">XP Ganada</p>
+                <p class="text-3xl font-black text-brandOrange">+{{ puntosActuales }}</p>
+              </div>
+            </div>
+            <button @click="vista = 'dashboard'" class="w-full bg-gray-800 text-white font-black py-3 rounded-xl shadow hover:bg-gray-900 transition">
+              Volver al Dashboard
+            </button>
+          </div>
+        </div>
+
+        <!-- PLAYER PROGRESSION -->
+        <section v-if="['logros', 'tienda', 'recompensas'].includes(vista)" class="reward-page">
+          <header class="reward-heading">
+            <div><span class="reward-eyebrow">EDUQUEST / PROGRESIÓN</span><h1>{{ vista === 'tienda' ? 'Equípate para la próxima misión.' : vista === 'logros' ? 'Cada reto deja su huella.' : 'Juega. Sube. Desbloquea.' }}</h1><p>{{ vista === 'tienda' ? 'Canjea tu oro por pociones y accesorios. Solo moneda del juego.' : vista === 'logros' ? 'Supera objetivos en los minijuegos y reclama oro por tus logros.' : 'Un camino sin final: cada 250 XP te espera un premio nuevo.' }}</p></div>
+            <div class="wallet"><img src="/coin.svg" class="coin" alt="Moneda de oro"><strong>{{ progress?.gold ?? '—' }}</strong><span>ORO</span></div>
+          </header>
+          <div v-if="!progress && busy" class="reward-loading" role="status">Cargando tu inventario y progreso…<div></div><div></div></div>
+          <div v-if="progress" class="progress-strip"><span><ic n="star"></ic> {{ progress.xp }} XP</span><span><ic n="folder"></ic> {{ progress.chests }} cofres</span><span>{{ progress.boost ? 'XP ×2 · ' + progress.boost + ' premios restantes' : 'Gana 1 de oro por cada 5 XP base' }}</span><button @click="ir('quizzes')">Jugar para ganar XP <ic n="rocket"></ic></button></div>
+
+          <template v-if="vista === 'recompensas' && progress">
+            <div class="journey-intro"><div><span class="reward-eyebrow">TU PRÓXIMA META</span><h2>{{ nextReward?.xp }} XP</h2><p>Faltan {{ Math.max(0, (nextReward?.xp || 0) - progress.xp) }} XP. Cada acierto te acerca.</p></div><div class="journey-meter"><label for="journey-progress">{{ progress.xp % 250 }} / 250 XP</label><progress id="journey-progress" :value="progress.xp % 250" max="250"></progress></div></div>
+            <div class="reward-road">
+              <article v-for="(m, index) in rewardPath" :key="m.id" class="road-stop" :class="{ unlocked: progress.xp >= m.xp, claimed: progress.claimed.includes(m.id), 'chest-stop': m.chest }">
+                <span class="road-number">{{ String(index + 1).padStart(2, '0') }}</span><div class="road-art"><div v-if="m.chest" class="mini-chest"><span></span><b></b></div><img v-else src="/coin.svg" class="coin coin-lg" alt="Oro"></div><div><small>{{ m.xp }} XP</small><h3>{{ m.chest ? 'Cofre de suministros' : m.gold + ' de oro' }}</h3></div><button :disabled="!rewardReady || progress.xp < m.xp || progress.claimed.includes(m.id)" @click="rewardAction('claim', m.id)">{{ progress.claimed.includes(m.id) ? 'Reclamado' : progress.xp >= m.xp ? 'Reclamar' : 'Bloqueado' }}</button>
+              </article>
+            </div>
+          </template>
+
+          <template v-if="vista === 'tienda' && progress">
+            <div class="shop-rotation"><ic n="clock"></ic><span>Selección rotativa: la tienda cambia cada 5 horas</span><b>Nueva selección en {{ shopCountdown }}</b></div>
+            <div class="shop-layout"><div class="shop-grid"><article v-for="item in offer.items" :key="item.id" class="shop-item" :class="item.type" :data-rarity="item.rarity"><span class="reward-eyebrow">{{ item.rarity }}</span><div class="item-art"><div v-if="item.type === 'chest'" class="mini-chest"><span></span><b></b></div><img v-else-if="item.type === 'avatar'" :src="item.img" :alt="item.name"><img v-else-if="item.type === 'frame'" :src="itemOf(progress.equipped.avatar)?.img || usuario.avatar" :class="item.id" class="frame-preview" :alt="item.name"><div v-else-if="item.type === 'title'" class="title-preview"><ic :n="item.icon"></ic><b>{{ item.name }}</b></div><ic v-else :n="item.icon"></ic></div><h2>{{ item.name }}</h2><p>{{ item.desc }}</p><button :disabled="!rewardReady || progress.gold < item.price || (!['potion','chest'].includes(item.type) && !!progress.inventory[item.id])" @click="rewardAction('buy', item.id)"><template v-if="!['potion','chest'].includes(item.type) && progress.inventory[item.id]">En tu inventario</template><template v-else><img src="/coin.svg" class="coin coin-xs" alt="">{{ item.price }} · Comprar</template></button></article></div>
+            <aside class="inventory"><span class="reward-eyebrow">TU ARSENAL</span><h2>Inventario</h2><div class="inventory-profile"><img :src="(itemOf(progress.equipped.avatar)?.img || usuario.avatar)" :class="progress.equipped.frame" alt="Tu perfil equipado"><strong>{{ usuario.nombre }}</strong><span v-if="progress.equipped.title">{{ itemOf(progress.equipped.title)?.name }}</span></div><div class="inventory-chest"><div class="mini-chest"><span></span><b></b></div><h3>{{ progress.chests }} cofres disponibles</h3><button :disabled="!rewardReady || !progress.chests" @click="rewardAction('open')">Abrir un cofre</button><small>Oro + un objeto aleatorio en cada cofre.</small></div><div v-for="p in catalog.filter(i => i.type === 'potion')" :key="'pot-' + p.id" class="inventory-row"><span>{{ p.name }}: {{ progress.inventory[p.id] || 0 }}</span><button :disabled="!rewardReady || !progress.inventory[p.id] || progress.boost > 0" @click="rewardAction('potion', p.id)">{{ progress.boost ? 'Impulso activo' : 'Usar ×2 XP' }}</button></div><template v-for="item in catalog" :key="'owned-' + item.id"><div v-if="progress.inventory[item.id] && !['potion','chest'].includes(item.type)" class="inventory-row"><span>{{ item.name }}</span><button :disabled="!rewardReady" @click="rewardAction('equip', item.id)">{{ progress.equipped[item.type] === item.id ? 'Quitar' : 'Equipar' }}</button></div></template><p class="inventory-hint">Tu progreso se guarda en este navegador (o en línea si hay servidor). Conserva las cookies para volver a tu inventario.</p></aside></div>
+          </template>
+
+          <div v-if="vista === 'logros' && progress" class="achievement-grid"><article v-for="a in achievements" :key="a.id" class="achievement" :class="{ unlocked: achievementValue(a) >= a.target }"><ic :n="a.icon"></ic><span class="reward-eyebrow"><img src="/coin.svg" class="coin coin-xs" alt="">+{{ a.gold }} ORO</span><h2>{{ a.name }}</h2><p>{{ a.desc }}</p><progress :value="Math.min(achievementValue(a), a.target)" :max="a.target" :aria-label="a.name"></progress><small>{{ Math.min(achievementValue(a), a.target) }} / {{ a.target }}</small><button :disabled="!rewardReady || achievementValue(a) < a.target || progress.achievements.includes(a.id)" @click="rewardAction('achievement', a.id)">{{ progress.achievements.includes(a.id) ? 'Reclamado' : achievementValue(a) >= a.target ? 'Reclamar oro' : 'En progreso' }}</button></article></div>
+        </section>
+
+        <!-- AJUSTES -->
+        <div v-if="vista === 'ajustes'" class="flex-1 px-8 pb-8">
+          <div class="bg-white rounded-3xl p-8 card-shadow max-w-2xl border border-gray-100 mb-6" id="personalizar">
+            <div class="flex items-center justify-between flex-wrap gap-3 mb-6"><h3 class="text-xl font-black text-gray-800">Personalizar</h3><div class="flex gap-2 flex-wrap"><button type="button" class="pz-btn" @click="temaAleatorio"><ic n="dice"></ic> Sorpréndeme</button><button type="button" class="pz-btn" @click="temaReset">Restablecer</button></div></div>
+            <div v-for="g in TEMA_GRUPOS" :key="g.k" class="mb-5"><p class="pz-label">{{ g.t }}</p><div class="pz-opts" role="group" :aria-label="g.t"><button v-for="o in g.o" :key="o[0]" type="button" class="pz-opt" :class="{ sw: g.k === 'acento', on: tema[g.k] === o[0] }" :style="g.k === 'acento' ? { background: o[2] } : null" :aria-pressed="tema[g.k] === o[0]" :aria-label="o[1]" :title="o[1]" @click="tema[g.k] = o[0]">{{ g.k === 'acento' ? '' : o[1] }}</button></div></div>
+            <label class="pz-btn"><ic n="folder"></ic> Subir imagen de fondo<input type="file" accept="image/*" class="hidden" @change="subirFondo"></label><span v-if="temaMsg" class="pz-msg" role="status">{{ temaMsg }}</span>
+          </div>
+          <div class="bg-white rounded-3xl p-8 card-shadow max-w-2xl border border-gray-100">
+            <h3 class="text-xl font-black text-gray-800 mb-6">Perfil de Usuario</h3>
+            
+            <div class="flex items-center gap-6 mb-8">
+              <div class="w-24 h-24 rounded-full bg-orange-100 border-4 border-white shadow-sm overflow-hidden">
+                <img :src="(itemOf(progress?.equipped.avatar)?.img || usuario.avatar)" :class="progress?.equipped.frame" class="w-full h-full object-cover">
+              </div>
+              <div>
+                <label class="cursor-pointer bg-white border border-gray-300 text-gray-700 text-sm font-bold py-2 px-4 rounded-xl hover:bg-gray-50 transition inline-block shadow-sm">
+                  <ic n="folder"></ic> Cambiar Foto
+                  <input type="file" accept="image/*" @change="cargarImagenAjustes" class="hidden">
+                </label>
+              </div>
+            </div>
+
+            <div class="avatar-recommendations">
+                <div class="avatar-gallery-heading"><span>AVATARES RECOMENDADOS</span><button type="button" @click="avatarAleatorio(true)"><ic n="dice"></ic> Aleatorio</button></div>
+                <div class="avatar-gallery" role="group" aria-label="Avatares recomendados">
+                  <button v-for="avatar in avatares" :key="avatar.src" type="button" @click="elegirAvatar(avatar.src)" :aria-label="'Elegir avatar ' + avatar.nombre" :aria-pressed="usuario.avatar === avatar.src" :class="{ chosen: usuario.avatar === avatar.src }"><img :src="avatar.src" :alt="avatar.nombre"><span v-if="usuario.avatar === avatar.src" aria-hidden="true">✓</span></button>
+                </div>
+              </div>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Nombre</label>
+                <input type="text" v-model="usuario.nombre" @change="guardarUsuario" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 font-bold text-gray-800 focus:outline-none focus:border-brandOrange">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="chestDialog" class="chest-overlay" @keydown.esc="!opening && (chestDialog = false)">
+          <section class="chest-modal" role="dialog" aria-modal="true" aria-labelledby="chest-title" tabindex="-1" ref="chestModal"><span class="reward-eyebrow">SUMINISTROS DESBLOQUEADOS</span><h2 id="chest-title">{{ opening ? 'Abriendo tu cofre…' : '¡El botín es tuyo!' }}</h2><div class="chest-stage" :class="{ opening, revealed: !opening }"><div class="chest-rays"></div><div class="big-chest"><div class="chest-lid"></div><div class="chest-base"></div><div class="chest-lock"></div></div><i v-for="n in 12" :key="n" :style="{ '--i': n }"></i></div><div v-if="!opening && loot" class="loot-reveal" aria-live="polite"><strong>+{{ loot.gold }} de oro</strong><p>{{ loot.duplicate ? loot.item + ' repetido → convertido en 80 de oro (incluidos arriba)' : loot.item + ' añadido a tu inventario' }}</p><button @click="chestDialog = false; ir('tienda')">Ver mi inventario</button></div><p v-else role="status">Preparando tus recompensas…</p></section>
+        </div>
+      </main>
+    </template>
+  <button v-if="usuarioLogueado && !mostrandoBienvenida" type="button" class="theme-fab" @click="alternarModo" :aria-label="modoActual === 'oscuro' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'" :title="modoActual === 'oscuro' ? 'Modo claro' : 'Modo oscuro'"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g v-if="modoActual === 'oscuro'"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></g><path v-else d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+    </div>
+
+  <script>
+    const { createApp, ref, computed, onMounted, onBeforeUnmount, watch, nextTick } = Vue;
+
+    const PREGUNTAS_DATA = [
+      { pregunta: "¿Qué significa HTML?", opciones: ["Hyper Text Markup Language", "High Tech Modern Language", "Hyper Tool Multi Language", "Home Tool Markup Language"], correcta: 0 },
+      { pregunta: "¿Cuál de estos es un lenguaje de programación?", opciones: ["HTML", "CSS", "Python", "HTTP"], correcta: 2 },
+      { pregunta: "¿Qué etiqueta se usa para crear un enlace en HTML?", opciones: ["<link>", "<a>", "<href>", "<url>"], correcta: 1 },
+      { pregunta: "¿Cómo se declara una variable constante en JavaScript?", opciones: ["var x = 1;", "let x = 1;", "const x = 1;", "constant x = 1;"], correcta: 2 },
+      { pregunta: "¿Qué propiedad de CSS cambia el color del texto?", opciones: ["background-color", "text-color", "font-color", "color"], correcta: 3 },
+      { pregunta: "¿Qué hace console.log()?", opciones: ["Muestra un valor en la consola", "Borra la pantalla", "Crea una variable", "Cierra el navegador"], correcta: 0 },
+      { pregunta: "¿Qué símbolo inicia un comentario de una línea en JavaScript?", opciones: ["//", "#", "<!--", "**"], correcta: 0 },
+      { pregunta: "¿Qué etiqueta HTML crea el título más grande?", opciones: ["<h6>", "<head>", "<h1>", "<title>"], correcta: 2 }
+    ];
+
+    const TECLEO_DATA = [
+      'const velocidad = 120;', 'let pilotos = ["Neo", "Rex"];', 'if (nivel > 5) { turbo(); }', 'for (let i = 0; i < 3; i++) {}',
+      'console.log("Meta alcanzada");', '<button class="boton">Ir</button>', 'document.querySelector(".pista");',
+      'function sumar(a, b) { return a + b; }', '.auto { color: orange; margin: 4px; }', 'const dobles = nums.map(n => n * 2);'
+    ];
+
+    const mezclar = (a) => [...a].sort(() => Math.random() - 0.5);
+
+    const BUGS_DATA = [
+      { lineas: ['let total = 0;', 'for (let i = 0; i <= 3; i++) {', '  total += i;', '}', 'console.log(total);'], bug: 1, nota: 'Con <= el ciclo corre una vez de más. Debe ser i < 3.' },
+      { lineas: ['const nombre = "Ana";', 'nombre = "Luis";', 'console.log(nombre);'], bug: 1, nota: 'Una const no se puede reasignar. Usa let.' },
+      { lineas: ['<ul>', '  <li>Uno</li>', '  <li>Dos<li>', '</ul>'], bug: 2, nota: 'Falta cerrar la etiqueta: </li>.' },
+      { lineas: ['if (edad = 18) {', '  console.log("Mayor");', '}'], bug: 0, nota: 'Un solo = asigna. Para comparar usa ===.' },
+      { lineas: ['.caja {', '  color: red', '  margin: 10px;', '}'], bug: 1, nota: 'Falta el punto y coma después de red.' },
+      { lineas: ['function sumar(a, b) {', '  a + b;', '}', 'console.log(sumar(2, 3));'], bug: 1, nota: 'Falta return: así la función devuelve undefined.' },
+      { lineas: ['const frutas = ["pera", "uva"];', 'console.log(frutas[2]);'], bug: 1, nota: 'Los índices empiezan en 0. El último es frutas[1].' }
+    ];
+
+    const TIRO_DATA = [
+      { q: "console.log(2 + '2')", ok: '"22"', mal: ['4', 'NaN', 'undefined'] },
+      { q: "typeof 42", ok: '"number"', mal: ['"string"', '"int"', '"digit"'] },
+      { q: "[1, 2, 3].length", ok: '3', mal: ['2', '4', 'undefined'] },
+      { q: "Boolean(0)", ok: 'false', mal: ['true', '0', 'null'] },
+      { q: "'hola'.toUpperCase()", ok: '"HOLA"', mal: ['"Hola"', '"hola"', 'error'] },
+      { q: "10 % 3", ok: '1', mal: ['3', '0', '3.33'] },
+      { q: "'5' * 2", ok: '10', mal: ['"52"', 'NaN', '7'] },
+      { q: "[1, 2, 3].includes(4)", ok: 'false', mal: ['true', '4', 'undefined'] }
+    ];
+
+    const app = createApp({
+      setup() {
+        const mostrandoBienvenida = ref(true);
+        let bienvenidaTimer;
+        function terminarBienvenida() {
+          clearTimeout(bienvenidaTimer);
+          mostrandoBienvenida.value = false;
+        }
+        function enfocarAcceso() {
+          document.getElementById('login-name')?.focus({ preventScroll: true });
+        }
+        onMounted(() => { bienvenidaTimer = setTimeout(terminarBienvenida, 2600); });
+        onBeforeUnmount(() => clearTimeout(bienvenidaTimer));
+        const usuarioLogueado = ref(false);
+        const inputNombre = ref('');
+        const avatares = [
+          { nombre: 'Circuito', src: '/avatars/circuito.svg' },
+          { nombre: 'Nova', src: '/avatars/nova.svg' },
+          { nombre: 'Pixel', src: '/avatars/pixel.svg' },
+          { nombre: 'Órbita', src: '/avatars/orbita.svg' },
+          { nombre: 'Blaze', src: '/avatars/blaze.svg' },
+          { nombre: 'Echo', src: '/avatars/echo.svg' },
+          { nombre: 'Volt', src: '/avatars/volt.svg' },
+          { nombre: 'Frost', src: '/avatars/frost.svg' }
+        ];
+        const tempAvatar = ref('');
+        function elegirAvatar(src) { usuario.value.avatar = src; guardarUsuario(); }
+        function avatarAleatorio(ajustes) {
+          const actual = ajustes ? usuario.value.avatar : tempAvatar.value;
+          const opciones = avatares.filter(avatar => avatar.src !== actual);
+          const elegido = opciones[Math.floor(Math.random() * opciones.length)].src;
+          if (ajustes) elegirAvatar(elegido); else tempAvatar.value = elegido;
+        } 
+        
+        const vista = ref('dashboard');
+        const jugando = ref(false);
+
+        const usuario = ref({
+          nombre: 'Estudiante',
+          avatar: '/avatars/circuito.svg',
+          xp: 0,
+          racha: 0,
+          ranking: 12,
+          ultimaFecha: '',
+          dias: [],
+          stats: { quizzes: 0, perfectos: 0, bugs: 0, blancos: 0, carreras: 0, teclas: 0, canastas: 0 },
+          trofeos: {}
+        });
+
+        const USUARIO_BASE = JSON.stringify(Object.assign({}, usuario.value, { xp: 0, racha: 0, ultimaFecha: '', dias: [] }));
+        const rewards = window.createRewards(Vue, usuario);
+        const { offer, shopCountdown, itemOf, progress, catalog, achievements, busy, error: rewardError, notice: rewardNotice, loot, opening, chestDialog, ready: rewardReady, path: rewardPath, next: nextReward, act: rewardAction, retry: retryRewards, achievementValue } = rewards;
+
+        // TROFEOS
+        const T = window.EduTrophies;
+        const tierNombre = T.tierNombre;
+        const trofeoCola = [], trofeoActual = ref(null);
+        const trofeoJuego = ref(null), trofeoPanel = ref(null);
+        let trofeoTimer = null, trofeoSync = false, trofeoPrevFocus = null;
+        const xpActual = computed(() => progress.value?.xp ?? usuario.value.xp ?? 0);
+        const trofeoPlatino = T.list.find(t => t.id === 'platino');
+        const trofeosTotal = T.list.length - 1;
+        const trofeosHechos = computed(() => T.list.filter(t => t.id !== 'platino' && usuario.value.trofeos?.[t.id]).length);
+        function tieneTrofeo(id) { return !!usuario.value.trofeos?.[id]; }
+        const trofeoGrupos = computed(() => T.groups.map(g => {
+          const items = T.list.filter(t => t.game === g.id);
+          return { ...g, items, hechos: items.filter(t => tieneTrofeo(t.id)).length };
+        }));
+        const trofeoGrupoAbierto = computed(() => trofeoGrupos.value.find(g => g.id === trofeoJuego.value) || null);
+        function resumenTrofeos(game) { const g = trofeoGrupos.value.find(x => x.id === game); return { hechos: g ? g.hechos : 0, total: g ? g.items.length : 0 }; }
+        function trofeoMeta(t) { return T.meta(t); }
+        function trofeoValor(t) {
+          if (t.tier === 'platino') return T.otros(t).filter(o => tieneTrofeo(o.id)).length;
+          return Math.min(T.valor(t, usuario.value, xpActual.value), t.target);
+        }
+        // Acepta png, gif (animado), webp o jpg: prueba cada formato hasta encontrar la imagen
+        const TROFEO_EXT = ['png', 'gif', 'webp', 'jpg'];
+        function trofeoImgError(ev, id) {
+          const img = ev.target, i = (+img.dataset.i || 0) + 1;
+          if (i < TROFEO_EXT.length) { img.dataset.i = i; img.src = '/trophies/' + id + '.' + TROFEO_EXT[i]; }
+          else img.style.display = 'none';
+        }
+        async function abrirTrofeos(game) {
+          trofeoPrevFocus = document.activeElement; trofeoJuego.value = game;
+          await nextTick(); trofeoPanel.value?.focus();
+        }
+        function cerrarTrofeosJuego() { trofeoJuego.value = null; nextTick(() => trofeoPrevFocus?.focus?.()); }
+        function teclaTrofeos(e) { if (e.key === 'Escape' && trofeoJuego.value) cerrarTrofeosJuego(); }
+        onMounted(() => document.addEventListener('keydown', teclaTrofeos));
+        onBeforeUnmount(() => document.removeEventListener('keydown', teclaTrofeos));
+        function sonidoTrofeo(platino) {
+          if (!T.sonido) return;
+          try {
+            const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+            const ctx = new AC(), notas = platino ? [523, 659, 784, 1047] : [659, 988];
+            notas.forEach((f, i) => {
+              const o = ctx.createOscillator(), g = ctx.createGain(), t0 = ctx.currentTime + i * 0.12;
+              o.type = 'sine'; o.frequency.value = f;
+              g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.15, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.4);
+              o.connect(g); g.connect(ctx.destination); o.start(t0); o.stop(t0 + 0.45);
+            });
+            setTimeout(() => ctx.close(), 2000);
+          } catch {}
+        }
+        function mostrarSiguienteTrofeo() {
+          if (trofeoActual.value || !trofeoCola.length) return;
+          const t = trofeoCola.shift();
+          trofeoActual.value = t; sonidoTrofeo(t.tier === 'platino');
+          clearTimeout(trofeoTimer);
+          trofeoTimer = setTimeout(cerrarTrofeo, t.tier === 'platino' ? 6500 : 4500);
+        }
+        function cerrarTrofeo() {
+          clearTimeout(trofeoTimer);
+          trofeoActual.value = null;
+          setTimeout(mostrarSiguienteTrofeo, 500);
+        }
+        function revisarTrofeos(silencioso = false) {
+          if (!currentUid) return;
+          const u = usuario.value;
+          if (!u.trofeos || typeof u.trofeos !== 'object') u.trofeos = {};
+          const nuevos = [], ganar = t => { u.trofeos[t.id] = Date.now(); nuevos.push(t); };
+          // 1) niveles normales
+          for (const t of T.list) {
+            if (t.tier === 'platino' || u.trofeos[t.id]) continue;
+            if (T.valor(t, u, xpActual.value) >= t.target) ganar(t);
+          }
+          // 2) platino de cada juego
+          for (const t of T.list) {
+            if (t.tier !== 'platino' || t.game === 'global' || u.trofeos[t.id]) continue;
+            if (T.otros(t).every(o => u.trofeos[o.id])) ganar(t);
+          }
+          // 3) platino grande
+          if (!u.trofeos.platino && T.otros(trofeoPlatino).every(o => u.trofeos[o.id])) ganar(trofeoPlatino);
+          if (!nuevos.length) return;
+          guardarUsuario();
+          if (!silencioso) { trofeoCola.push(...nuevos); mostrarSiguienteTrofeo(); }
+        }
+        // el XP viene del servidor: la primera vez que carga se revisa en silencio (para no llenar la pantalla de avisos con trofeos viejos)
+        watch(() => progress.value?.xp, xp => { if (xp == null) return; const silencio = !trofeoSync; trofeoSync = true; revisarTrofeos(silencio); });
+
+        const chestModal = ref(null);
+        let previousChestFocus;
+        watch(chestDialog, async visible => {
+          if (visible) { previousChestFocus = document.activeElement; await nextTick(); chestModal.value?.focus(); }
+          else { await nextTick(); previousChestFocus?.focus(); }
+        });
+        function trapChestFocus(event) {
+          if (!chestDialog.value || event.key !== 'Tab') return;
+          const button = chestModal.value?.querySelector('button');
+          event.preventDefault(); (button || chestModal.value)?.focus();
+        }
+        onMounted(() => document.addEventListener('keydown', trapChestFocus));
+        onBeforeUnmount(() => document.removeEventListener('keydown', trapChestFocus));
+        const titulos = { dashboard: 'Centro de mando', quizzes: 'Mis Quizzes', bugs: 'Escáner de Bugs', tiro: 'Tiro al Blanco', carrera: 'Carrera de Código', teclas: 'Carrera de Teclas', resultados: 'Resultados', logros: 'Logros', tienda: 'Armería y suministros', recompensas: 'Camino de recompensas', ajustes: 'Ajustes' };
+        const menuAbierto = ref(false);
+        const menu = [
+          { v: 'dashboard', i: 'chart', t: 'Inicio' }, { v: 'quizzes', i: 'book', t: 'Mis Quizzes' },
+          { v: 'logros', i: 'trophy', t: 'Logros' }, { v: 'tienda', i: 'gem', t: 'Tienda' }, { v: 'recompensas', i: 'star', t: 'Recompensas' }, { v: 'ajustes', i: 'gear', t: 'Ajustes' }
+        ];
+        const activo = (v) => vista.value === v || (v === 'quizzes' && ['bugs', 'tiro', 'carrera', 'teclas', 'baloncesto', 'resultados'].includes(vista.value));
+        function ir(v) { limpiarMini(); jugando.value = false; vista.value = v; menuAbierto.value = false; }
+
+        function hoyStr(d = new Date()) { return d.toLocaleDateString('en-CA'); }
+        const rachaAviso = ref(false);
+        let rachaTimer;
+        function registrarActividad() {
+          const u = usuario.value, hoy = hoyStr();
+          if (!Array.isArray(u.dias)) u.dias = [];
+          if (u.ultimaFecha === hoy) { if (!u.dias.includes(hoy)) u.dias.push(hoy); return; }
+          if (!u.ultimaFecha) u.racha = 1;
+          else u.racha = u.ultimaFecha === hoyStr(new Date(Date.now() - 864e5)) ? u.racha + 1 : 1;
+          u.ultimaFecha = hoy;
+          if (!u.dias.includes(hoy)) u.dias.push(hoy);
+          u.dias = u.dias.slice(-120);
+          rachaAviso.value = true;
+          clearTimeout(rachaTimer);
+          rachaTimer = setTimeout(() => { rachaAviso.value = false; }, 7000);
+        }
+        function sumarXP(n, stat, perfect = false) {
+          rewards.award(n, stat, perfect);
+          if (stat) usuario.value.stats[stat]++;
+          if (n > 0) registrarActividad();
+          guardarUsuario();
+          revisarTrofeos();
+        }
+
+        const hoyRef = ref(new Date());
+        const mesNombre = computed(() => hoyRef.value.toLocaleDateString('es', { month: 'long', year: 'numeric' }));
+        const hechoHoy = computed(() => (usuario.value.dias || []).includes(hoyStr(hoyRef.value)));
+        const calendario = computed(() => {
+          const y = hoyRef.value.getFullYear(), m = hoyRef.value.getMonth(), dias = usuario.value.dias || [];
+          const vacios = (new Date(y, m, 1).getDay() + 6) % 7, total = new Date(y, m + 1, 0).getDate();
+          const celdas = Array.from({ length: vacios }, (_, i) => ({ id: 'v' + i, vacio: true }));
+          for (let d = 1; d <= total; d++) celdas.push({ id: d, d, activo: dias.includes(y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0')), hoy: d === hoyRef.value.getDate() });
+          return celdas;
+        });
+        const diasActivosMes = computed(() => calendario.value.filter(c => c.activo).length);
+
+        const nivelActual = computed(() => Math.floor(usuario.value.xp / 100) + 1);
+        const rango = computed(() => {
+          if (nivelActual.value < 3) return 'Aprendiz';
+          if (nivelActual.value < 6) return 'Explorador';
+          return 'Maestro';
+        });
+
+        const preguntasActuales = ref([]);
+        const indiceActual = ref(0);
+        const puntosActuales = ref(0);
+        const respuestaSeleccionada = ref(null);
+        const aciertos = ref(0);
+
+        const preguntaActual = computed(() => preguntasActuales.value[indiceActual.value] || {});
+        const esCorrecta = computed(() => respuestaSeleccionada.value === preguntaActual.value.correcta);
+
+        // IMÁGENES
+        function cargarImagen(event) {
+          const file = event.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => { tempAvatar.value = e.target.result; };
+            reader.readAsDataURL(file);
+          }
+        }
+
+        function cargarImagenAjustes(event) {
+          const file = event.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => { 
+              usuario.value.avatar = e.target.result; 
+              guardarUsuario();
+            };
+            reader.readAsDataURL(file);
+          }
+        }
+
+        // LOGIN / REGISTRO (Firebase Auth)
+        const authMode = ref('login'), authEmail = ref(''), authPass = ref('');
+        const authError = ref(''), authInfo = ref(''), authBusy = ref(false);
+        let EA = null, currentUid = null, pendienteRegistro = null;
+        const userKey = () => currentUid ? 'eduquest_user:' + currentUid : 'eduquest_user';
+        const ERRORES_AUTH = {
+          'auth/invalid-credential': 'Correo o contraseña incorrectos. Si no tienes cuenta, pulsa "Crear cuenta".', 'auth/wrong-password': 'Correo o contraseña incorrectos.',
+          'auth/user-not-found': 'No existe una cuenta con ese correo.', 'auth/email-already-in-use': 'Ese correo ya está registrado. Inicia sesión.',
+          'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.', 'auth/invalid-email': 'El correo no es válido.',
+          'auth/too-many-requests': 'Demasiados intentos. Espera un momento.', 'auth/network-request-failed': 'Sin conexión. Revisa tu internet.',
+          'auth/operation-not-allowed': 'Falta activar Correo/Contraseña en Firebase Authentication.'
+        };
+        const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+        const DOMINIOS = ['gmail.com','hotmail.com','outlook.com','yahoo.com','icloud.com','live.com','yahoo.es','hotmail.es'];
+        function distancia(a, b) { // cuántas letras cambian entre dos textos
+          const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+          for (let j = 1; j <= b.length; j++) d[0][j] = j;
+          for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+            d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+          return d[a.length][b.length];
+        }
+        const emailHint = computed(() => {
+          const e = (authEmail.value || '').trim().toLowerCase();
+          if (!e) return { texto: '', tipo: '' };
+          if (!e.includes('@')) return { texto: 'Falta el @ (ejemplo: nombre@gmail.com).', tipo: 'bad' };
+          if (!EMAIL_RE.test(e)) return { texto: 'Ese correo no está completo. Revisa lo que va después del @.', tipo: 'bad' };
+          const dom = e.split('@')[1];
+          const parecido = DOMINIOS.find(x => x !== dom && distancia(dom, x) <= 2);
+          if (parecido) return { texto: '¿Quisiste decir ' + e.split('@')[0] + '@' + parecido + '?', tipo: 'warn' };
+          return { texto: 'Formato de correo válido ✓', tipo: 'ok' };
+        });
+        function cambiarModo(m) { authMode.value = m; authError.value = ''; authInfo.value = ''; }
+        async function enviarAuth() {
+          if (!EA) { authError.value = 'Firebase todavía está cargando. Intenta de nuevo.'; return; }
+          if (emailHint.value.tipo === 'bad') { authError.value = emailHint.value.texto; return; }
+          authBusy.value = true; authError.value = ''; authInfo.value = '';
+          try {
+            if (authMode.value === 'registro') {
+              pendienteRegistro = { nombre: (inputNombre.value || '').trim() || 'Estudiante', avatar: tempAvatar.value };
+              await EA.register(authEmail.value, authPass.value, pendienteRegistro.nombre);
+            } else await EA.login(authEmail.value, authPass.value);
+          } catch (e) { pendienteRegistro = null; authError.value = ERRORES_AUTH[e.code] || 'No se pudo completar la acción. Intenta de nuevo.'; }
+          finally { authBusy.value = false; }
+        }
+        async function olvidoPass() {
+          authError.value = ''; authInfo.value = '';
+          if (!authEmail.value) { authError.value = 'Escribe tu correo arriba y vuelve a pulsar.'; return; }
+          try { await EA.reset(authEmail.value); authInfo.value = 'Te enviamos un correo para restablecer tu contraseña.'; }
+          catch (e) { authError.value = ERRORES_AUTH[e.code] || 'No se pudo enviar el correo.'; }
+        }
+        function alAutenticar(user) {
+          rewards.reset();
+          if (!user) { currentUid = null; window.__eduUid = null; usuarioLogueado.value = false; return; }
+          currentUid = user.uid; window.__eduUid = user.uid;
+          let saved = null;
+          try { saved = localStorage.getItem(userKey()) || localStorage.getItem('eduquest_user'); } catch {}
+          const base = JSON.parse(USUARIO_BASE);
+          let g = {};
+          try { g = saved ? JSON.parse(saved) : {}; } catch {}
+          usuario.value = { ...base, ...g, stats: { ...base.stats, ...(g.stats || {}) } };
+          if (!saved) {
+            usuario.value.nombre = (pendienteRegistro && pendienteRegistro.nombre) || user.displayName || (user.email || 'Estudiante').split('@')[0];
+            if (pendienteRegistro && pendienteRegistro.avatar) usuario.value.avatar = pendienteRegistro.avatar;
+          }
+          pendienteRegistro = null;
+          if (!Array.isArray(usuario.value.dias)) usuario.value.dias = [];
+          if (!usuario.value.trofeos || typeof usuario.value.trofeos !== 'object') usuario.value.trofeos = {};
+          trofeoSync = false; revisarTrofeos(true);
+          if (usuario.value.ultimaFecha && !usuario.value.dias.includes(usuario.value.ultimaFecha)) usuario.value.dias.push(usuario.value.ultimaFecha);
+          authPass.value = ''; authError.value = '';
+          usuarioLogueado.value = true;
+          guardarUsuario();
+          rewards.init();
+        }
+        function guardarLogin() { enviarAuth(); }
+
+        function guardarUsuario() {
+          if (!currentUid) return;
+          localStorage.setItem(userKey(), JSON.stringify(usuario.value));
+        }
+
+        async function cerrarSesion() {
+          limpiarMini(); menuAbierto.value = false;
+          try { if (EA) await EA.logout(); } catch {}
+          usuarioLogueado.value = false;
+          inputNombre.value = ''; tempAvatar.value = ''; authEmail.value = ''; authPass.value = '';
+          vista.value = 'dashboard';
+        }
+
+        // JUEGO
+        function iniciarJuego() {
+          preguntasActuales.value = mezclar(PREGUNTAS_DATA);
+          indiceActual.value = 0;
+          puntosActuales.value = 0;
+          aciertos.value = 0;
+          respuestaSeleccionada.value = null;
+          jugando.value = true;
+          vista.value = 'quizzes';
+        }
+
+        function seleccionarRespuesta(index) {
+          if (respuestaSeleccionada.value !== null) return;
+          respuestaSeleccionada.value = index;
+          
+          if (index === preguntaActual.value.correcta) {
+            puntosActuales.value += 10;
+            aciertos.value++;
+          }
+        }
+
+        function siguientePregunta() {
+          if (indiceActual.value < preguntasActuales.value.length - 1) {
+            indiceActual.value++;
+            respuestaSeleccionada.value = null;
+          } else {
+            sumarXP(puntosActuales.value, 'quizzes', aciertos.value === preguntasActuales.value.length);
+            if (aciertos.value === preguntasActuales.value.length) usuario.value.stats.perfectos++;
+            guardarUsuario();
+            revisarTrofeos();
+            jugando.value = false;
+            vista.value = 'resultados';
+          }
+        }
+
+        // MINI JUEGO: ESCÁNER DE BUGS
+        const bug = ref({ lista: [], n: 0, vidas: 3, puntos: 0, encontrados: 0, elegida: null, fin: false });
+        const bugActual = computed(() => bug.value.lista[bug.value.n] || { lineas: [] });
+        function iniciarBugs() {
+          bug.value = { lista: mezclar(BUGS_DATA).slice(0, 6), n: 0, vidas: 3, puntos: 0, encontrados: 0, elegida: null, fin: false };
+          vista.value = 'bugs';
+        }
+        function elegirLinea(i) {
+          const b = bug.value;
+          if (b.elegida !== null) return;
+          b.elegida = i;
+          if (i === bugActual.value.bug) { b.puntos += 15; b.encontrados++; sumarXP(15, 'bugs'); } else { b.vidas--; }
+        }
+        function siguienteBug() {
+          const b = bug.value;
+          if (b.vidas === 0 || b.n === b.lista.length - 1) { b.fin = true; return; }
+          b.n++; b.elegida = null;
+        }
+        function lineaClase(i) {
+          const b = bug.value;
+          if (b.elegida === null) return 'text-gray-100 hover:bg-gray-700';
+          if (i === bugActual.value.bug) return 'bg-green-500/25 text-green-300 pulse-ok';
+          return i === b.elegida ? 'bg-red-500/30 text-red-300 shake-bad' : 'text-gray-500';
+        }
+
+        // MINI JUEGO: TIRO AL BLANCO
+        const tiro = ref({ lista: [], n: 0, vidas: 3, puntos: 0, aciertos: 0, tiempo: 10, blancos: [], bloqueado: false, fin: false });
+        const tiroActual = computed(() => tiro.value.lista[tiro.value.n] || { q: '' });
+        let tiroTimer = null, tiroPausa = null;
+        function armarRonda() {
+          const t = tiro.value, r = t.lista[t.n], xs = mezclar([4, 28, 52, 76]);
+          t.blancos = mezclar([r.ok, ...r.mal]).map((txt, i) => ({
+            t: txt, esOk: txt === r.ok, estado: '', x: xs[i], y: 8 + Math.random() * 45, dur: (2 + Math.random() * 1.8).toFixed(1)
+          }));
+          t.tiempo = 10; t.bloqueado = false; t.ultimo = 0;
+        }
+        function iniciarTiro() {
+          clearInterval(tiroTimer); clearTimeout(tiroPausa);
+          tiro.value = { lista: mezclar(TIRO_DATA).slice(0, 6), n: 0, vidas: 3, puntos: 0, aciertos: 0, tiempo: 10, blancos: [], bloqueado: false, fin: false };
+          armarRonda();
+          vista.value = 'tiro';
+          tiroTimer = setInterval(() => {
+            const t = tiro.value;
+            if (t.fin || t.bloqueado) return;
+            if (--t.tiempo <= 0) resolverRonda(-1);
+          }, 1000);
+        }
+        function resolverRonda(i) {
+          const t = tiro.value;
+          t.bloqueado = true;
+          t.blancos.forEach((b, k) => { if (b.esOk) b.estado = 'ok'; else if (k === i) b.estado = 'mal'; });
+          if (i >= 0 && t.blancos[i].esOk) {
+            const pts = 10 + Math.max(0, t.tiempo);
+            t.puntos += pts; t.aciertos++; t.ultimo = pts; sumarXP(pts, 'blancos');
+          } else { t.vidas--; }
+          tiroPausa = setTimeout(() => {
+            if (t.vidas === 0 || t.n === t.lista.length - 1) { t.fin = true; clearInterval(tiroTimer); return; }
+            t.n++; armarRonda();
+          }, 1000);
+        }
+        function disparar(i) { if (!tiro.value.bloqueado && !tiro.value.fin) resolverRonda(i); }
+
+        // MINI JUEGO: BALONCESTO DE CÓDIGO
+        const BALONCESTO_DATA = [
+          { a: 'console.', ok: 'log', mal: 'print', b: '("Hola");' },
+          { a: 'let edad ', ok: '=', mal: '==', b: ' 18;' },
+          { a: 'for (let i = 0; i < 5; ', ok: 'i++', mal: 'i--', b: ') { }' },
+          { a: 'if (nota ', ok: '>=', mal: '=>', b: ' 60) { }' },
+          { a: '<a ', ok: 'href', mal: 'src', b: '="/inicio">Ir</a>' },
+          { a: '<img ', ok: 'src', mal: 'href', b: '="gato.png">' },
+          { a: 'p { ', ok: 'color', mal: 'text-color', b: ': red; }' },
+          { a: 'function sumar(a, b) { ', ok: 'return', mal: 'returns', b: ' a + b; }' },
+          { a: 'lista.', ok: 'push', mal: 'add', b: '(4);' },
+          { a: 'document.', ok: 'getElementById', mal: 'getElement', b: '("caja");' },
+          { a: 'const doble = n ', ok: '=>', mal: '->', b: ' n * 2;' },
+          { a: '<ul>\n  ', ok: '<li>', mal: '<il>', b: 'Pan</li></ul>' },
+          { a: 'while (vidas ', ok: '>', mal: '<', b: ' 0) { jugar(); }' },
+          { a: '.caja { background-', ok: 'color', mal: 'colour', b: ': blue; }' },
+          { a: 'const nombre = ', ok: '"Ana"', mal: 'Ana"', b: ';' },
+          { a: '[1, 2, 3].', ok: 'length', mal: 'size', b: ';' },
+          { a: 'if (x ', ok: '===', mal: '=', b: ' 5) { }' },
+          { a: '<input type="', ok: 'text', mal: 'texto', b: '">' }
+        ];
+        const bb = ref({ lista: [], n: 0, puntos: 0, aciertos: 0, racha: 0, fase: 'agarra', bloqueado: true, fin: false, elegido: null, opts: [], ultimo: 0, resultado: '' });
+        let bbTimers = [];
+        const bbLater = (fn, ms) => { bbTimers.push(setTimeout(fn, ms)); };
+        const bbActual = computed(() => bb.value.lista[Math.min(bb.value.n, bb.value.lista.length - 1)] || { a: '', b: '', ok: '', mal: '' });
+        function bbCargar() {
+          const b = bb.value, it = b.lista[b.n];
+          b.opts = mezclar([{ t: it.ok, ok: true }, { t: it.mal, ok: false }]);
+          b.elegido = null; b.resultado = ''; b.ultimo = 0;
+        }
+        function bbAgarrar() {
+          // El jugador se agacha, toma otro balón del carrito y vuelve a quedar listo.
+          const b = bb.value;
+          b.fase = 'agarra'; b.bloqueado = true;
+          bbCargar();
+          bbLater(() => { b.fase = 'idle'; b.bloqueado = false; }, 1100);
+        }
+        function iniciarBaloncesto() {
+          limpiarMini();
+          bb.value = { lista: mezclar(BALONCESTO_DATA).slice(0, 6), n: 0, puntos: 0, aciertos: 0, racha: 0, fase: 'agarra', bloqueado: true, fin: false, elegido: null, opts: [], ultimo: 0, resultado: '' };
+          vista.value = 'baloncesto';
+          bbAgarrar();
+        }
+        function elegirBB(i) {
+          const b = bb.value;
+          if (b.bloqueado || b.fin) return;
+          const acierto = b.opts[i].ok;
+          b.bloqueado = true; b.elegido = i; b.fase = acierto ? 'ok' : 'mal';
+          bbLater(() => {
+            if (acierto) {
+              b.racha++;
+              const pts = 20 + Math.min(b.racha - 1, 3) * 5;
+              b.puntos += pts; b.aciertos++; b.ultimo = pts; b.resultado = 'ok';
+              sumarXP(pts, 'canastas');
+            } else { b.racha = 0; b.resultado = 'mal'; }
+          }, acierto ? 2000 : 2050);
+          bbLater(() => {
+            if (b.n >= b.lista.length - 1) { b.fase = 'fin'; b.fin = true; return; }
+            b.n++; bbAgarrar();
+          }, 3000);
+        }
+
+        // MINI JUEGO: CARRERA DE CÓDIGO
+        const VEL = [0.9, 1.5, 2.1, 2.8, 3.6, 4.5];
+        const poolCarrera = () => mezclar([...TIRO_DATA, ...PREGUNTAS_DATA.map(p => ({ q: p.pregunta, ok: p.opciones[p.correcta], mal: p.opciones.filter((_, i) => i !== p.correcta) }))]);
+        const car = ref({ yo: 0, bots: [0, 0], nivel: 1, cuenta: 3, ya: false, fin: false, pos: 0, xp: 0, aciertos: 0, q: '', opts: [], sel: null, error: false, bloqueo: false, llegaron: [], pool: [], k: 0 });
+        const posActual = computed(() => 1 + car.value.bots.filter(b => b > car.value.yo).length);
+        let carTimer = null, carPausa = null, carAcum = 0;
+        function preguntaCarrera() {
+          const c = car.value;
+          if (c.k >= c.pool.length) { c.pool = poolCarrera(); c.k = 0; }
+          const r = c.pool[c.k++];
+          c.q = r.q; c.opts = mezclar([r.ok, ...r.mal]).map(t => ({ t, ok: t === r.ok })); c.sel = null; c.bloqueo = false;
+        }
+        const inputTecla = ref(null);
+        const teclaChars = computed(() => (car.value.q || '').split(''));
+        function tcClase(i) {
+          const c = car.value, e = c.escrito || '';
+          if (i < e.length) return e[i] === c.q[i] ? 'tc-ok' : 'tc-bad';
+          return i === e.length ? 'tc-cur' : 'tc-pend';
+        }
+        function siguienteTecla() {
+          const c = car.value;
+          if (c.k >= c.pool.length) { c.pool = mezclar(TECLEO_DATA); c.k = 0; }
+          c.q = c.pool[c.k++]; c.escrito = ''; c.prev = 0; c.malo = false;
+        }
+        function arrancar(v, pool) {
+          limpiarMini();
+          car.value = { yo: 0, bots: [0, 0], nivel: 1, cuenta: 3, ya: false, fin: false, pos: 0, xp: 0, aciertos: 0, q: '', opts: [], sel: null, error: false, bloqueo: false, llegaron: [], pool, k: 0, escrito: '', prev: 0, malo: false, racha: 0 };
+          if (v === 'teclas') siguienteTecla(); else preguntaCarrera();
+          carAcum = 0; vista.value = v;
+          carTimer = setInterval(tickCarrera, 50);
+        }
+        function iniciarCarrera() { arrancar('carrera', poolCarrera()); }
+        function iniciarTeclas() { arrancar('teclas', mezclar(TECLEO_DATA)); }
+        function reiniciarCarrera() { if (vista.value === 'teclas') iniciarTeclas(); else iniciarCarrera(); }
+        function alEscribir() {
+          const c = car.value;
+          if (c.cuenta > 0 || c.fin) { c.escrito = ''; c.prev = 0; return; }
+          const t = c.q, e = c.escrito, ok = t.startsWith(e), antesMalo = c.malo, nuevas = e.length - c.prev;
+          if (nuevas > 0) {
+            if (ok) {
+              const antes = Math.floor(c.racha / 8);
+              c.racha += nuevas; c.aciertos += nuevas;
+              c.nivel = Math.min(5, c.nivel + Math.floor(c.racha / 8) - antes);
+            } else if (!antesMalo) {
+              c.nivel = Math.max(0, c.nivel - 2); c.racha = 0; c.error = true;
+              setTimeout(() => { c.error = false; }, 500);
+            }
+          }
+          c.malo = !ok; c.prev = e.length;
+          if (e === t) siguienteTecla();
+        }
+        function tickCarrera() {
+          const c = car.value, dt = 0.05;
+          if (c.fin) return;
+          if (c.cuenta > 0) {
+            carAcum += dt;
+            if (carAcum >= 0.8) { carAcum = 0; if (--c.cuenta === 0) { if (vista.value === 'teclas') nextTick(() => inputTecla.value && inputTecla.value.focus()); c.ya = true; setTimeout(() => { c.ya = false; }, 700); } }
+            return;
+          }
+          c.yo = Math.min(100, c.yo + VEL[c.nivel] * dt);
+          [2.1, 2.7].forEach((v, k) => {
+            if (c.bots[k] >= 100) return;
+            c.bots[k] = Math.min(100, c.bots[k] + v * dt * (0.8 + Math.random() * 0.4));
+            if (c.bots[k] >= 100) c.llegaron.push(k);
+          });
+          if (c.yo >= 100) terminarCarrera();
+        }
+        function terminarCarrera() {
+          const c = car.value;
+          c.fin = true; clearInterval(carTimer);
+          c.pos = c.llegaron.length + 1;
+          const teclas = vista.value === 'teclas';
+          c.xp = [40, 25, 10][c.pos - 1] + (teclas ? Math.floor(c.aciertos / 10) : c.aciertos * 2);
+          sumarXP(c.xp, c.pos === 1 ? (teclas ? 'teclas' : 'carreras') : null);
+        }
+        function responder(i) {
+          const c = car.value;
+          if (c.bloqueo || c.cuenta > 0 || c.fin) return;
+          c.sel = i; c.bloqueo = true;
+          if (c.opts[i].ok) { c.nivel = Math.min(5, c.nivel + 1); c.aciertos++; }
+          else { c.nivel = Math.max(0, c.nivel - 2); c.error = true; setTimeout(() => { c.error = false; }, 700); }
+          carPausa = setTimeout(() => { if (!c.fin) preguntaCarrera(); }, 700);
+        }
+
+        function limpiarMini() { clearInterval(tiroTimer); clearTimeout(tiroPausa); clearInterval(carTimer); clearTimeout(carPausa); bbTimers.forEach(clearTimeout); bbTimers = []; }
+        function salirMini() { limpiarMini(); vista.value = 'quizzes'; }
+
+        // PERSONALIZAR (tema)
+        const TEMA_GRUPOS = [
+          { k: 'modo', t: 'Modo', o: [['claro', 'Claro'], ['oscuro', 'Oscuro'], ['auto', 'Automático']] },
+          { k: 'acento', t: 'Color de acento', o: [['rosa', 'Rosa', '#ff5c8a'], ['azul', 'Azul', '#2563eb'], ['lima', 'Lima', '#a3e635'], ['naranja', 'Naranja', '#fb923c'], ['morado', 'Morado', '#7c3aed'], ['cian', 'Cian', '#22d3ee'], ['rojo', 'Rojo', '#ef4444'], ['amarillo', 'Amarillo', '#facc15']] },
+          { k: 'fondo', t: 'Fondo', o: [['liso', 'Liso'], ['cuadricula', 'Cuadrícula'], ['puntos', 'Puntos'], ['rayas', 'Rayas'], ['aurora', 'Aurora'], ['synth', 'Synthwave'], ['estrellas', 'Estrellas'], ['imagen', 'Mi imagen']] },
+          { k: 'fuente', t: 'Fuente', o: [['moderna', 'Moderna'], ['pixel', 'Pixel'], ['redonda', 'Redonda'], ['tech', 'Tech'], ['codigo', 'Código']] },
+          { k: 'neon', t: 'Neón / brillo', o: [['off', 'Apagado'], ['suave', 'Suave'], ['intenso', 'Intenso'], ['arcoiris', 'Arcoíris']] },
+          { k: 'esq', t: 'Esquinas', o: [['cuadradas', 'Cuadradas'], ['normal', 'Normales'], ['redondas', 'Redondas']] },
+          { k: 'sombra', t: 'Sombras', o: [['dura', 'Duras'], ['suave', 'Suaves'], ['ninguna', 'Ninguna']] }
+        ];
+        const tema = ref(window.eduTema.leer());
+        const temaMsg = ref('');
+        const modoActual = computed(() => tema.value.modo === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'oscuro' : 'claro') : tema.value.modo);
+        watch(tema, (t) => { try { localStorage.setItem('eduquest_tema', JSON.stringify(t)); } catch {} window.eduTema.aplicar(t); }, { deep: true });
+        function alternarModo() { tema.value.modo = modoActual.value === 'oscuro' ? 'claro' : 'oscuro'; }
+        function temaReset() { tema.value = Object.assign({}, window.eduTema.D); temaMsg.value = ''; }
+        function temaAleatorio() {
+          const hayImg = !!localStorage.getItem('eduquest_fondo'), t = Object.assign({}, tema.value);
+          TEMA_GRUPOS.forEach((g) => { if (g.k === 'modo') return; const ops = g.o.filter((o) => o[0] !== 'imagen' || hayImg); t[g.k] = ops[Math.floor(Math.random() * ops.length)][0]; });
+          tema.value = t;
+        }
+        function subirFondo(e) {
+          const f = e.target.files[0]; if (!f) return; temaMsg.value = '';
+          const rd = new FileReader();
+          rd.onload = () => {
+            const im = new Image();
+            im.onload = () => {
+              const k = Math.min(1, 1600 / im.width), c = document.createElement('canvas');
+              c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+              c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+              try { localStorage.setItem('eduquest_fondo', c.toDataURL('image/jpeg', 0.75)); tema.value.fondo = 'imagen'; window.eduTema.aplicar(tema.value); temaMsg.value = 'Fondo aplicado.'; }
+              catch { temaMsg.value = 'La imagen es demasiado grande. Prueba con otra.'; }
+            };
+            im.onerror = () => { temaMsg.value = 'No se pudo leer esa imagen.'; };
+            im.src = rd.result;
+          };
+          rd.readAsDataURL(f); e.target.value = '';
+        }
+
+        onMounted(() => {
+          // La sesión la recuerda Firebase; aquí solo escuchamos sus cambios.
+          window.eduAuthReady.then((api) => { EA = api; api.onChange(alAutenticar); });
+        });
+
+        return {
+          chestModal, offer, shopCountdown, itemOf, calendario, mesNombre, hechoHoy, diasActivosMes, rachaAviso, progress, catalog, achievements, busy, rewardError, rewardNotice, loot, opening, chestDialog, rewardReady, rewardPath, nextReward, rewardAction, retryRewards, achievementValue,
+          avatares, elegirAvatar, avatarAleatorio,
+          mostrandoBienvenida, terminarBienvenida, enfocarAcceso,
+          usuarioLogueado, inputNombre, tempAvatar, cargarImagen, guardarLogin, cerrarSesion,
+          TEMA_GRUPOS, tema, temaMsg, modoActual, alternarModo, temaReset, temaAleatorio, subirFondo,
+          emailHint, trofeoActual, cerrarTrofeo, trofeoGrupos, trofeosTotal, trofeosHechos, trofeoPlatino, tieneTrofeo, trofeoValor, trofeoMeta, trofeoImgError, tierNombre, resumenTrofeos, abrirTrofeos, cerrarTrofeosJuego, trofeoGrupoAbierto, trofeoPanel, authMode, authEmail, authPass, authError, authInfo, authBusy, cambiarModo, enviarAuth, olvidoPass,
+          vista, jugando, usuario, nivelActual, rango,
+          preguntasActuales, indiceActual, puntosActuales, respuestaSeleccionada, aciertos,
+          preguntaActual, esCorrecta, iniciarJuego, seleccionarRespuesta, siguientePregunta,
+          cargarImagenAjustes, guardarUsuario, titulos,
+          bug, bugActual, iniciarBugs, elegirLinea, siguienteBug, lineaClase,
+          tiro, tiroActual, iniciarTiro, disparar, salirMini, bb, bbActual, iniciarBaloncesto, elegirBB,
+          menuAbierto, menu, activo, ir, car, posActual, iniciarCarrera, responder,
+          iniciarTeclas, reiniciarCarrera, alEscribir, inputTecla, teclaChars, tcClase
+        };
+      }
+    });
+app.component('navart', { props: ['n'], template: `<svg class="nav-art" viewBox="0 0 32 32" aria-hidden="true">
+      <g v-if="n==='dashboard'"><rect x="22" y="6" width="4" height="7" rx="1" fill="#94a3b8" stroke="#334155" stroke-width="1.2"/><path d="M3 17 16 5l13 12z" fill="#f87171" stroke="#7f1d1d" stroke-width="1.6" stroke-linejoin="round"/><rect x="6" y="17" width="20" height="12" rx="1.5" fill="#fde68a" stroke="#92400e" stroke-width="1.6"/><rect x="13" y="21" width="6" height="8" rx="1" fill="#60a5fa" stroke="#1e3a8a" stroke-width="1.4"/><circle cx="17.5" cy="25.5" r=".8" fill="#fff"/></g>
+      <g v-else-if="n==='quizzes'"><path d="M3 8c4-1.5 9-1 13 1.5v18C12 25 7 24.5 3 26z" fill="#fde68a" stroke="#92400e" stroke-width="1.6" stroke-linejoin="round"/><path d="M29 8c-4-1.5-9-1-13 1.5v18c4-2.5 9-3 13-1.5z" fill="#fbbf24" stroke="#92400e" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 12c2-.5 4 0 6 .8M7 16c2-.5 4 0 6 .8" stroke="#b45309" stroke-width="1.2" stroke-linecap="round" fill="none"/><text x="22.5" y="21" font-size="11" font-weight="900" text-anchor="middle" fill="#7c3aed" font-family="Arial,sans-serif">?</text><path d="M25 1.5l1 2.5 2.5 1-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1z" fill="#fff7ae"/></g>
+      <g v-else-if="n==='logros'"><path d="M9 4h14v8a7 7 0 0 1-14 0z" fill="#facc15" stroke="#a16207" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 7H4c0 5 2 7 5.5 7.5M23 7h5c0 5-2 7-5.5 7.5" fill="none" stroke="#a16207" stroke-width="1.6" stroke-linecap="round"/><rect x="14" y="19" width="4" height="5" fill="#eab308" stroke="#a16207" stroke-width="1.4"/><rect x="9" y="24" width="14" height="5" rx="1.5" fill="#92400e" stroke="#451a03" stroke-width="1.4"/><path d="M16 7.5l1.4 2.9 3.1.4-2.3 2.1.6 3.1-2.8-1.6-2.8 1.6.6-3.1-2.3-2.1 3.1-.4z" fill="#fff7ae"/></g>
+      <g v-else-if="n==='tienda'"><path d="M3 11 6 4h20l3 7z" fill="#f87171" stroke="#7f1d1d" stroke-width="1.5" stroke-linejoin="round"/><path d="M3 11c0 2.2 2.2 3 4.3 3S11.5 13 11.5 11c0 2 1.7 3 4.5 3s4.5-1 4.5-3c0 2 2 3 4.2 3S29 13.2 29 11" fill="#fff" stroke="#7f1d1d" stroke-width="1.5"/><rect x="5" y="14" width="22" height="14" fill="#fde68a" stroke="#92400e" stroke-width="1.6"/><rect x="8" y="18" width="8" height="10" fill="#60a5fa" stroke="#1e3a8a" stroke-width="1.3"/><circle cx="22" cy="21" r="3.5" fill="#facc15" stroke="#a16207" stroke-width="1.3"/></g>
+      <g v-else-if="n==='recompensas'"><rect x="5" y="13" width="22" height="16" rx="2" fill="#a78bfa" stroke="#4c1d95" stroke-width="1.6"/><rect x="3" y="9" width="26" height="6" rx="2" fill="#c4b5fd" stroke="#4c1d95" stroke-width="1.6"/><rect x="14" y="9" width="4" height="20" fill="#facc15" stroke="#a16207" stroke-width="1.2"/><path d="M16 9C11 9 9 3.5 12.5 3.5S16 7 16 9zM16 9c5 0 7-5.5 3.5-5.5S16 7 16 9z" fill="#fde047" stroke="#a16207" stroke-width="1.3" stroke-linejoin="round"/></g>
+      <g v-else-if="n==='ajustes'" transform="translate(16 16)"><g fill="#94a3b8" stroke="#334155" stroke-width="1.3"><rect x="-2.5" y="-14" width="5" height="28" rx="1.5"/><rect x="-2.5" y="-14" width="5" height="28" rx="1.5" transform="rotate(45)"/><rect x="-2.5" y="-14" width="5" height="28" rx="1.5" transform="rotate(90)"/><rect x="-2.5" y="-14" width="5" height="28" rx="1.5" transform="rotate(135)"/></g><circle r="9" fill="#cbd5e1" stroke="#334155" stroke-width="1.5"/><circle r="3.6" fill="#1e293b"/></g>
+    </svg>` });
+    app.component('ic', { props: ['n'], template: '<svg class="ic" aria-hidden="true"><use :href="\'#i-\' + n"/></svg>' });
+    app.mount('#app');
+  </script>
+  <script type="module" src="/src/auth-bridge.js"></script>
+</body>
+</html>

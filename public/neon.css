@@ -1,0 +1,77 @@
+/* Tema neón retro (synthwave) para la pantalla de bienvenida y el login. Se carga al final. */
+.welcome-screen,.access-screen{
+  --n-pink:#ff2e97;--n-pink2:#ff4fa8;--n-cyan:#22e5ff;--n-yel:#ffd23f;--n-line:#5b3a8f;--n-txt:#f4ecff;--n-mut:#c4b1e3;--n-dim:#9b7fc4;
+  --stars:radial-gradient(1.5px 1.5px at 8% 12%,#fff 50%,transparent),radial-gradient(1px 1px at 22% 30%,#fff 50%,transparent),radial-gradient(1.5px 1.5px at 38% 8%,#cdeaff 50%,transparent),radial-gradient(1px 1px at 55% 22%,#fff 50%,transparent),radial-gradient(1.5px 1.5px at 71% 10%,#fff 50%,transparent),radial-gradient(1px 1px at 86% 26%,#ffd6f0 50%,transparent),radial-gradient(1px 1px at 93% 8%,#fff 50%,transparent),radial-gradient(1px 1px at 14% 44%,#fff 50%,transparent),radial-gradient(1px 1px at 63% 40%,#cdeaff 50%,transparent),radial-gradient(1.5px 1.5px at 47% 36%,#fff 50%,transparent);
+  --sol-mask:linear-gradient(#000 0 52%,transparent 52% 56%,#000 56% 64%,transparent 64% 69%,#000 69% 76%,transparent 76% 82%,#000 82% 89%,transparent 89% 95%,#000 95%);
+}
+
+/* ---------- BIENVENIDA ---------- */
+.welcome-screen{background:var(--stars),linear-gradient(#2b0b4d 0,#16062b 52%,#0b0316 100%);color:var(--n-txt)}
+.welcome-screen::before{left:0;right:0;top:52%;bottom:auto;width:auto;height:2px;border-radius:0;opacity:1;transform:none;background:#ff7ac8;box-shadow:0 0 14px 3px var(--n-pink),0 0 44px 10px #ff2e9766;z-index:0}
+.welcome-screen::after{left:-100%;right:-100%;top:52%;bottom:auto;width:auto;height:520px;border-radius:0;opacity:.95;z-index:0;
+  background:repeating-linear-gradient(90deg,var(--n-pink) 0 2px,transparent 2px 46px),repeating-linear-gradient(0deg,var(--n-pink) 0 2px,transparent 2px 34px),linear-gradient(#2a0a45,#0c0316);
+  transform:perspective(600px) rotateX(60deg);transform-origin:50% 0;-webkit-mask-image:linear-gradient(transparent,#000 25%);mask-image:linear-gradient(transparent,#000 25%)}
+.welcome-orbit{left:50%;top:52%;width:min(40vh,34vw);min-width:150px;aspect-ratio:1;border:0;border-radius:50%;transform:translate(-50%,-100%);background:linear-gradient(#ffd23f,#ff7a3d 45%,var(--n-pink));-webkit-mask-image:var(--sol-mask);mask-image:var(--sol-mask);opacity:.95;z-index:0}
+.welcome-content,.welcome-footnote{z-index:1}
+.welcome-emblem{background:#150a35;color:var(--n-cyan);border:2px solid var(--n-cyan);border-radius:12px;box-shadow:0 0 18px #22e5ff99,inset 0 0 14px #22e5ff44;text-shadow:0 0 10px var(--n-cyan);transform:rotate(-6deg)}
+.welcome-emblem span{color:var(--n-yel);text-shadow:0 0 10px var(--n-yel)}
+.welcome-eyebrow{color:var(--n-cyan);text-shadow:0 0 8px #22e5ff99}
+.welcome-title{color:#fff;text-shadow:0 0 6px var(--n-cyan),0 0 24px #22e5ffaa}
+.welcome-title span{color:var(--n-pink2);text-shadow:0 0 8px var(--n-pink),0 0 30px #ff2e97bb}
+.welcome-greeting{color:#fff;text-shadow:0 0 14px #ffffff55}
+.welcome-caption{color:var(--n-mut)}
+.welcome-footnote{color:var(--n-dim)}
+.welcome-progress{background:#2a1850}.welcome-progress span{background:linear-gradient(90deg,var(--n-cyan),var(--n-pink))}
+.welcome-skip{border:2px solid var(--n-cyan);color:var(--n-cyan);background:#0e0a2899;border-radius:4px;font-weight:700;text-shadow:0 0 8px #22e5ff99;box-shadow:0 0 14px #22e5ff55,inset 0 0 10px #22e5ff22}
+.welcome-skip:hover{background:#22e5ff26}.welcome-skip:focus-visible{outline-color:var(--n-pink)}
+
+/* ---------- LOGIN / REGISTRO ---------- */
+.access-screen{background:#10051d;color:var(--n-txt)}
+.access-story{background:var(--stars),linear-gradient(#2b0b4d 0,#16062b 58%,#0b0316 100%);border-right:1px solid #ff2e9755}
+.access-story::before{content:'';position:absolute;right:-60px;top:16%;width:min(300px,30vw);aspect-ratio:1;border-radius:50%;background:linear-gradient(#ffd23f,#ff7a3d 45%,var(--n-pink));-webkit-mask-image:var(--sol-mask);mask-image:var(--sol-mask);opacity:.5;pointer-events:none}
+.access-story::after{content:'';position:absolute;left:-100%;right:-100%;top:62%;height:460px;pointer-events:none;opacity:.55;
+  background:repeating-linear-gradient(90deg,var(--n-pink) 0 2px,transparent 2px 46px),repeating-linear-gradient(0deg,var(--n-pink) 0 2px,transparent 2px 34px);
+  transform:perspective(600px) rotateX(60deg);transform-origin:50% 0;-webkit-mask-image:linear-gradient(transparent,#000 30%);mask-image:linear-gradient(transparent,#000 30%)}
+.access-story>*{position:relative;z-index:1}
+.access-logo{background:#150a35;color:var(--n-cyan);border:1.5px solid var(--n-cyan);box-shadow:0 0 14px #22e5ff88}
+.brand-dot{color:var(--n-pink2)}
+.access-brand{color:#fff}
+.access-story .access-eyebrow,.access-form-content .access-eyebrow{color:var(--n-cyan);text-shadow:0 0 8px #22e5ff77}
+.access-eyebrow>span{background:var(--n-cyan);box-shadow:0 0 8px var(--n-cyan)}
+.story-content h2{color:#fff;text-shadow:0 0 22px #22e5ff55}
+.story-content h2 em{color:var(--n-pink2);text-shadow:0 0 10px var(--n-pink),0 0 30px #ff2e9788}
+.story-description,.access-description{color:var(--n-mut)}
+.quest-grid{background-image:linear-gradient(#ff2e9744 1px,transparent 1px),linear-gradient(90deg,#ff2e9744 1px,transparent 1px)}
+.quest-path path{stroke:var(--n-cyan)}
+.quest-hud{color:var(--n-mut);border-top-color:#ff2e9755}
+.quest-tile{border-color:#22e5ff66;color:var(--n-cyan);box-shadow:0 0 14px #22e5ff33}
+.tile-code,.tile-win{background:#1b0f3a}.tile-win{color:var(--n-yel);border-color:#ffd23f66}
+.tile-game{background:linear-gradient(135deg,var(--n-pink),#ff8a3d);color:#1a0830;border-color:#ff8fc8;box-shadow:0 0 22px #ff2e9788}
+.art-spark{color:var(--n-yel);text-shadow:0 0 10px var(--n-yel)}.spark-two{color:var(--n-cyan);text-shadow:0 0 10px var(--n-cyan)}
+.quest-caption{color:var(--n-mut)}.caption-line{background:var(--n-pink)}
+.story-footer,.access-footer,.access-chapter{color:var(--n-dim)}
+.access-form-panel{background:linear-gradient(#150826,#0d0418);background-image:linear-gradient(#ff2e9710 1px,transparent 1px);background-size:100% 64px;background-color:#120620}
+.access-intro-icon{background:#2a0f4a;border:1px solid var(--n-cyan);box-shadow:0 0 14px #22e5ff55}
+.access-form-content h1{color:#fff;text-shadow:0 0 18px #ff2e9744}
+.access-field>label{color:var(--n-txt)}.access-field>label span{color:var(--n-dim)}
+.access-field input:is([type=text],[type=email],[type=password]){background:#1a0c32;border-color:var(--n-line);color:#fff}
+.access-field input::placeholder{color:#8d77b3}
+.access-field input:is([type=text],[type=email],[type=password]):focus{border-color:var(--n-cyan);box-shadow:0 0 0 3px #22e5ff2e,0 0 14px #22e5ff55;outline:0}
+.access-screen .access-field input:-webkit-autofill,.access-screen .access-field input:-webkit-autofill:focus{-webkit-text-fill-color:#fff;caret-color:#fff;box-shadow:0 0 0 1000px #1a0c32 inset}
+.access-screen :is(input,button,a,.upload-action):focus-visible{outline-color:var(--n-cyan)}
+.auth-tabs button{border-color:var(--n-line);color:var(--n-mut)}
+.auth-tabs button.on{background:var(--n-cyan);border-color:var(--n-cyan);color:#07102a;box-shadow:0 0 14px #22e5ff77}
+.access-submit{background:linear-gradient(90deg,var(--n-pink),#ff6a3d);color:#16062b;box-shadow:0 0 22px #ff2e9777}
+.access-submit:hover{filter:brightness(1.1)}
+.access-screen .auth-link{color:var(--n-cyan)}
+.access-screen .auth-msg.err,.access-screen .email-hint.bad{color:#ff8fb8}
+.access-screen .auth-msg.ok,.access-screen .email-hint.ok{color:#7dffd0}
+.access-screen .email-hint.warn{color:var(--n-yel)}
+.access-form-note{color:var(--n-dim)}
+.avatar-upload{background:#1a0c32;border-color:var(--n-line)}
+.access-screen .avatar-gallery-heading span{color:var(--n-mut)}
+.access-screen .avatar-gallery-heading button,.upload-action{color:var(--n-cyan);border-color:#22e5ff66}
+.access-screen .avatar-gallery button{border-color:var(--n-line);background:#1a0c32}
+.access-screen .avatar-gallery button[aria-pressed=true]{border-color:var(--n-cyan);box-shadow:0 0 12px #22e5ff88}
+@media (max-width:640px){.access-story{border-right:0;border-bottom:1px solid #ff2e9755}.access-story::before{opacity:.3}}
+@media (prefers-reduced-motion:reduce){.welcome-screen *{animation:none}}
