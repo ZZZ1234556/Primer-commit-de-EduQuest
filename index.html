@@ -967,7 +967,14 @@
         const dueloRanking = computed(() => [...duelo.value.jugadores].sort((a, b) => (b.puntos - a.puntos) || String(a.nombre).localeCompare(String(b.nombre))));
         const dueloEsHost = computed(() => !!duelo.value.sala && duelo.value.sala.host === currentUid);
         const esYoDuelo = j => j.uid === currentUid;
-        const dueloMsg = e => /permission|insufficient/i.test((e && e.message) || '') ? 'El multijugador todavía no está activado: falta activar Firestore y publicar sus reglas.' : ((e && e.message) || 'Algo falló. Intenta otra vez.');
+        const dueloMsg = e => {
+          const m = String((e && (e.code || e.message)) || ''), full = String((e && e.message) || '');
+          if (/permission|insufficient/i.test(m)) return 'El multijugador no está activado: falta crear Firestore y publicar sus reglas. (permission-denied)';
+          if (/database.*does not exist|has not been used/i.test(full)) return 'Firestore todavía no está creado en tu proyecto de Firebase.';
+          if (/unavailable|offline|timeout/i.test(m + full)) return 'Firestore no responde. Revisa tu internet y que la base de datos ya esté creada en Firebase.';
+          return full || 'Algo falló. Intenta otra vez.';
+        };
+        const conTiempo = (p, ms = 12000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
         function dueloPerfil() {
           const av = String(usuario.value.avatar || '');
           return { nombre: String(usuario.value.nombre || 'Jugador').slice(0, 24), avatar: av.startsWith('/avatars/') ? av : '' };
@@ -984,7 +991,7 @@
           try {
             const p = dueloPerfil();
             const idxs = mezclar(PREGUNTAS_DATA.map((_, i) => i)).slice(0, Math.min(DUELO_PREGUNTAS, PREGUNTAS_DATA.length));
-            const code = await dueloApi().crear(currentUid, p.nombre, p.avatar, idxs);
+            const code = await conTiempo(dueloApi().crear(currentUid, p.nombre, p.avatar, idxs));
             dueloEntrar(code);
           } catch (e) { d.error = dueloMsg(e); }
           d.cargando = false;
@@ -994,7 +1001,7 @@
           if (d.cargando) return;
           if (cod.length !== 4) { d.error = 'El código tiene 4 letras o números.'; return; }
           d.cargando = true; d.error = '';
-          try { const p = dueloPerfil(); await dueloApi().unirse(cod, currentUid, p.nombre, p.avatar); dueloEntrar(cod); }
+          try { const p = dueloPerfil(); await conTiempo(dueloApi().unirse(cod, currentUid, p.nombre, p.avatar)); dueloEntrar(cod); }
           catch (e) { d.error = dueloMsg(e); }
           d.cargando = false;
         }
